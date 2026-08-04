@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="SARA Route Manager" xmlns="http://www.topografix.com/GPX/1/1">
+  <rte><name>Route exemple</name>
+    <rtept lat="47.730000" lon="-3.370000"><name>Point A</name></rtept>
+    <rtept lat="47.740000" lon="-3.350000"><name>Point B</name></rtept>
+  </rte>
+</gpx>

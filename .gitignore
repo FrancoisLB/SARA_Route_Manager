@@ -1,0 +1,38 @@
+# Environnement virtuel Python : ne vit normalement plus ici depuis le
+# passage à un emplacement partagé et stable (%LOCALAPPDATA%\SARA Route
+# Manager\venv, recréé par Installer.bat) — ces lignes restent une
+# précaution si un environnement local était malgré tout créé ici (IDE,
+# usage manuel).
+.venv/
+venv/
+
+# Fichiers Python compilés
+__pycache__/
+*.pyc
+*.pyo
+
+# Résidus de tests
+.pytest_cache/
+
+# Résidus de construction de l'exécutable (PyInstaller)
+build/
+dist/
+*.spec
+# Exception : ce fichier-ci est versionné intentionnellement, nécessaire
+# à une construction reproductible de l'exécutable.
+!sara_route_manager.spec
+
+# Données personnelles : par construction, ces éléments ne vivent jamais
+# dans le dossier du projet (configuration dans %APPDATA%\SARA Route
+# Manager\, routes/sauvegardes/journaux dans Documents\SARA Route
+# Manager\, identifiants dans le Gestionnaire d'identifiants Windows via
+# keyring). Ces lignes ne sont qu'une précaution si un fichier venait à
+# être créé par erreur directement dans le dossier du projet.
+config.toml
+*.log
+
+# Fichiers spécifiques à l'éditeur ou à l'OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

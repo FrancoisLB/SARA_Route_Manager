@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Créer une route — SARA Route Manager{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/unified_editor.js', v='0.7.2.0') }}" defer></script>{% endblock %}
+{% block content %}
+<h1 id="editor-title" tabindex="-1">Créer une route</h1>
+<p class="lead">Choisissez une source de points, ajoutez les points utiles à la route, puis modifiez leur ordre.</p>
+
+<section class="f6-zone" data-zone-name="Route en cours" aria-labelledby="current-route-heading">
+  <h2 id="current-route-heading" tabindex="-1">Route en cours : aucune route</h2>
+  <div id="route-name-field" class="field">
+    <label for="route-name">Nom de la route</label>
+    <input id="route-name" type="text" maxlength="100">
+  </div>
+  <div id="start-route-action" class="actions">
+    <button id="start-route" type="button">Créer cette route</button>
+  </div>
+  <div id="rename-route-action" class="actions" hidden>
+    <button id="rename-route" type="button" class="secondary">Renommer la route</button>
+  </div>
+  <p id="current-route-summary" role="status" aria-live="polite">Aucune route n’est ouverte. Saisissez un nom puis choisissez « Créer cette route », ou ouvrez une route existante depuis la Bibliothèque.</p>
+  <p class="actions"><a class="button-link secondary" href="/routes" id="back-to-library">Retour à la bibliothèque</a></p>
+</section>
+
+<div id="leave-route-dialog" class="modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="leave-route-dialog-title" aria-describedby="leave-route-dialog-description" hidden>
+  <h2 id="leave-route-dialog-title">Modifications non enregistrées</h2>
+  <p id="leave-route-dialog-description">Voulez-vous enregistrer la route sur ce PC avant de retourner à la bibliothèque ?</p>
+  <div class="actions">
+    <button id="leave-route-save" type="button">Enregistrer et retourner à la bibliothèque</button>
+    <button id="leave-route-discard" type="button" class="secondary">Retourner sans enregistrer</button>
+    <button id="leave-route-cancel" type="button" class="secondary">Annuler</button>
+  </div>
+</div>
+
+<section class="f6-zone" data-zone-name="Choix de la source" aria-labelledby="source-heading">
+<h2 id="source-heading" tabindex="-1">Choisir des points</h2>
+<div class="field"><label for="source-type">Source des points</label><select id="source-type"><option value="shom">Marques SHOM</option><option value="file">Fichier GPX, WPT, CSV ou JSON</option><option value="manual">Saisie manuelle</option><option value="route">Autre route locale</option></select></div>
+<div id="shom-source" class="source-panel">
+<div class="coordinates"><div class="field"><label for="center-latitude">Latitude du centre</label><input id="center-latitude" type="text" value="47.73"></div><div class="field"><label for="center-longitude">Longitude du centre</label><input id="center-longitude" type="text" value="-3.37"></div><div class="field"><label for="radius">Rayon</label><input id="radius" type="text" value="5"></div><div class="field"><label for="unit">Unité</label><select id="unit"><option value="nm">Milles nautiques</option><option value="km">Kilomètres</option></select></div></div>
+<button id="search-shom" type="button">Rechercher les marques SHOM</button>
+</div>
+<div id="file-source" class="source-panel" hidden><label for="point-file">Fichier de points ou route</label><input id="point-file" type="file" accept=".gpx,.wpt,.csv,.json"><button id="import-file" type="button">Importer le fichier</button></div>
+<div id="manual-source" class="source-panel" hidden><div class="coordinates"><div class="field"><label for="manual-name">Nom</label><input id="manual-name"></div><div class="field"><label for="manual-lat">Latitude</label><input id="manual-lat"></div><div class="field"><label for="manual-lon">Longitude</label><input id="manual-lon"></div></div><button id="add-manual-source" type="button">Ajouter aux points disponibles</button></div>
+<div id="route-source" class="source-panel" hidden><label for="source-route-list">Route source</label><select id="source-route-list"><option value="">Choisir une route</option></select><button id="load-source-route" type="button">Afficher ses points</button></div>
+</section>
+
+<section class="f6-zone" data-zone-name="Points disponibles et route" aria-labelledby="composition-heading">
+<h2 id="composition-heading" tabindex="-1">Composer la route</h2>
+<div class="point-controls" aria-label="Filtrer et trier les points disponibles">
+<div class="compact-control"><label for="type-filter">Type</label><select id="type-filter"><option value="all">Tous les types</option><option value="Latérale">Latérales</option><option value="Cardinale">Cardinales</option><option value="Danger isolé">Danger isolé</option><option value="Eaux saines">Eaux saines</option><option value="Marque spéciale">Marques spéciales</option><option value="Amer">Amers</option><option value="Autre">Autres</option></select></div>
+<div class="compact-control"><label for="sort-by">Tri</label><select id="sort-by"><option value="distance">Distance</option><option value="name">Nom</option><option value="latitude">Latitude</option></select></div>
+<div class="compact-control"><label for="sort-order">Ordre</label><select id="sort-order"><option value="asc">Croissant</option><option value="desc">Décroissant</option></select></div>
+</div>
+<div class="dual-list-layout">
+<section class="list-panel f6-zone" data-zone-name="Points importés" aria-labelledby="available-heading">
+<h3 id="available-heading" tabindex="-1">Points importés : 0</h3>
+<p id="available-empty-message">Aucun point importé.</p>
+<select id="available-list" class="transfer-list" size="14" aria-labelledby="available-heading"></select>
+</section>
+<div class="horizontal-transfer-buttons"><button id="add-point" type="button" aria-label="Ajouter à la route, Alt plus flèche droite">→</button><button id="remove-point" type="button" aria-label="Retirer de la route, Alt plus flèche gauche">←</button></div>
+<section class="list-panel f6-zone" data-zone-name="Points de la route" aria-labelledby="route-points-heading">
+<h3 id="route-points-heading" tabindex="-1">Points de la route : 0</h3>
+<p id="route-empty-message">Aucun point dans la route.</p>
+<select id="route-list" class="transfer-list" size="14" aria-labelledby="route-points-heading"></select>
+</section>
+<div class="vertical-move-buttons"><button id="move-up" type="button" aria-label="Monter, Alt plus flèche haut">↑</button><button id="move-down" type="button" aria-label="Descendre, Alt plus flèche bas">↓</button></div>
+</div>
+</section>
+
+<div id="point-context-menu" class="context-menu" role="menu" aria-label="Actions pour le point sélectionné" hidden></div>
+
+<section class="f6-zone" data-zone-name="Informations sur le point" aria-labelledby="details-heading"><h2 id="details-heading" tabindex="-1">Informations sur le point</h2><div id="point-details" class="details-panel" tabindex="0">Sélectionnez un point.</div><div class="actions"><button id="copy-info" type="button" class="secondary">Copier les informations</button><button id="copy-coordinates" type="button" class="secondary">Copier les coordonnées</button></div></section>
+<section class="f6-zone" data-zone-name="Analyse de la route" aria-labelledby="route-analysis-heading">
+<h2 id="route-analysis-heading" tabindex="-1">Analyse de la route</h2>
+<div id="route-analysis" class="details-panel">
+<p id="total-distance">Distance totale : 0,00 milles nautiques</p>
+<p id="segment-count">Nombre de segments : 0</p>
+</div>
+<div class="actions"><button id="export-segments-csv" type="button" class="secondary" disabled>Exporter les segments en CSV</button><button id="visualize-route" type="button" class="secondary" disabled>Visualiser la route</button></div>
+</section>
+<section class="f6-zone" data-zone-name="Enregistrement et export" aria-labelledby="save-heading"><h2 id="save-heading" tabindex="-1">Enregistrer et exporter</h2><div class="actions"><button id="save-route" type="button">Enregistrer sur le PC</button><button id="upload-route" type="button">Envoyer vers SARA</button><button id="export-gpx" type="button" class="secondary">Exporter GPX</button><button id="export-csv" type="button" class="secondary">Exporter CSV</button><button id="export-json" type="button" class="secondary">Exporter JSON</button></div></section>
+<section aria-labelledby="messages-heading">
+<h2 id="messages-heading">Messages</h2>
+<label for="status-message" class="visually-hidden">Journal des messages</label>
+<textarea id="status-message" class="status message-log" rows="5" readonly aria-live="polite" aria-atomic="true">Éditeur prêt.</textarea>
+<div class="actions"><button id="copy-status-message" type="button" class="secondary">Copier le message</button></div>
+</section>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}À propos — SARA Route Manager{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/about.js', v='0.7.2.0') }}" defer></script>{% endblock %}
+{% block content %}
+<h1 id="about-title" tabindex="-1">À propos de SARA Route Manager</h1>
+<section class="f6-zone" data-zone-name="Informations générales" aria-labelledby="about-general-heading">
+  <h2 id="about-general-heading" tabindex="-1">Informations générales</h2>
+  <dl id="about-general-list" class="route-details">
+    <dt>Logiciel</dt><dd>SARA Route Manager</dd>
+    <dt>Version</dt><dd>{{ version }}</dd>
+    <dt>Fonction</dt><dd>Préparer, créer et synchroniser des routes avec l’application iOS SARA Navigation depuis un PC Windows.</dd>
+    <dt>Répertoire des routes</dt><dd>{{ configuration.routes_directory }}</dd>
+    <dt>Fichier journal</dt><dd>{{ configuration.log_file }}</dd>
+  </dl>
+  <p class="actions"><button id="copy-general-information" type="button" class="secondary">Copier ces informations</button></p>
+</section>
+<section class="f6-zone" data-zone-name="Périmètre" aria-labelledby="scope-heading">
+  <h2 id="scope-heading" tabindex="-1">Périmètre</h2>
+  <p>SARA Route Manager est un logiciel Windows indépendant de préparation de routes. Il ne remplace pas SARA Navigation et n’assure aucune navigation GPS en temps réel.</p>
+</section>
+<section class="f6-zone" data-zone-name="Licence" aria-labelledby="license-heading">
+  <h2 id="license-heading" tabindex="-1">Licence</h2>
+  <p>Le code source de SARA Route Manager est distribué sous licence <strong>GPL-3.0-only</strong> (GNU General Public License, version 3 uniquement).</p>
+  <p>La documentation (guide utilisateur, raccourcis clavier, journal des versions et autres fichiers de ce dépôt, à l’exclusion du code source) est distribuée sous licence <strong>Creative Commons Attribution - Partage dans les Mêmes Conditions 4.0 International (CC BY-SA 4.0)</strong>.</p>
+  <p>Le fichier <code>LICENSE.md</code>, à la racine du projet, reprend ces deux licences en détail. Les ressources tierces intégrées (Leaflet, données et icônes du SHOM) suivent leurs propres licences, recensées dans <code>docs/THIRD_PARTY_LICENSES.md</code>.</p>
+  <div class="actions">
+    <button id="open-gpl-license-text" type="button" class="secondary">Ouvrir le texte légal de la GPL-3.0</button>
+    <button id="open-cc-by-sa-license-text" type="button" class="secondary">Ouvrir le texte légal de la CC BY-SA 4.0</button>
+  </div>
+</section>
+<section class="f6-zone" data-zone-name="Avertissement" aria-labelledby="disclaimer-heading">
+  <h2 id="disclaimer-heading" tabindex="-1">Avertissement</h2>
+  <p>Ce logiciel n’a fait l’objet d’aucune procédure qualité formelle et est livré « en l’état », sans garantie d’aucune sorte. Le développeur ne pourra être tenu responsable d’aucune conséquence de son utilisation — erreur de navigation, perte de données, ou tout autre dommage, direct ou indirect. Aucune réclamation à ce titre ne sera donc recevable.</p>
+  <p>En revanche, toute remarque pertinente et formulée avec courtoisie sur son fonctionnement, son ergonomie ou la fiabilité de ses résultats sera accueillie avec plaisir — et pourra, qui sait, contribuer au progrès de l’humanité lors d’une prochaine version.</p>
+</section>
+<section class="f6-zone" data-zone-name="Référence et remerciements" aria-labelledby="credits-heading">
+  <h2 id="credits-heading" tabindex="-1">Référence et remerciements</h2>
+  <p>SARA Route Manager s’appuie sur les ressources logicielles publiées en open source par l’association <strong>Orion Brest</strong>, à l’origine du développement du logiciel <strong>SARA Navigation</strong>.</p>
+  <p>Nous remercions l’association Orion Brest et les contributeurs du projet SARA pour leur travail en faveur d’une navigation maritime plus accessible.</p>
+  <p>SARA Route Manager est un projet indépendant et n’est pas présenté comme un logiciel officiel de l’association Orion Brest.</p>
+  <p class="actions"><button id="open-orion-brest-website" type="button" class="secondary">Ouvrir le site d’Orion Brest (orion-brest.com/SARA.html)</button></p>
+</section>
+<section class="f6-zone" data-zone-name="Documentation" aria-labelledby="documentation-heading">
+  <h2 id="documentation-heading" tabindex="-1">Documentation</h2>
+  <p>Les documents s’ouvrent dans l’application associée aux fichiers Markdown sous Windows.</p>
+  <div class="actions">
+    <button id="open-user-guide" type="button">Ouvrir le guide utilisateur</button>
+    <button id="open-keyboard-shortcuts" type="button" class="secondary">Ouvrir les raccourcis clavier</button>
+    <button id="open-release-notes" type="button" class="secondary">Ouvrir le journal des versions</button>
+  </div>
+</section>
+<section class="f6-zone" data-zone-name="Assistance technique" aria-labelledby="actions-heading">
+  <h2 id="actions-heading" tabindex="-1">Assistance technique</h2>
+  <p>Le bouton suivant copie les versions et les chemins utiles au diagnostic. Aucun mot de passe ni jeton de connexion n’est copié.</p>
+  <div class="actions">
+    <button id="copy-information" type="button">Copier les informations techniques</button>
+    <button id="open-log-file" type="button" class="secondary">Ouvrir le journal</button>
+    <a class="button-link secondary" href="/configuration">Ouvrir la page Configuration</a>
+  </div>
+  <div id="status-message" class="status" role="status" aria-live="polite">Page prête.</div>
+</section>
+{% endblock %}

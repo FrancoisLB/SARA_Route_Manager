@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Configuration — SARA Route Manager{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/configuration.js', v='0.7.2.0') }}" defer></script>{% endblock %}
+{% block content %}
+<h1 id="configuration-title" tabindex="-1">Configuration</h1>
+<p class="lead">Définissez le répertoire des routes et les préférences générales de l’application.</p>
+<form id="configuration-form">
+  <section class="f6-zone" data-zone-name="Répertoire des routes" aria-labelledby="directories-heading">
+    <h2 id="directories-heading" tabindex="-1">Répertoire des routes</h2>
+    <div class="field">
+      <label for="routes-directory">Chemin complet du répertoire</label>
+      <input id="routes-directory" type="text" required aria-describedby="routes-help">
+      <p id="routes-help" class="help">Ce dossier unique est utilisé pour les routes importées, exportées et enregistrées localement.</p>
+    </div>
+    <div class="actions">
+      <button id="choose-routes-directory" type="button" class="secondary">Choisir le répertoire des routes</button>
+      <button id="open-routes-directory" type="button" class="secondary">Ouvrir le répertoire des routes</button>
+    </div>
+  </section>
+  <section class="f6-zone" data-zone-name="Compte SARA" aria-labelledby="account-options-heading">
+    <h2 id="account-options-heading" tabindex="-1">Compte SARA</h2>
+    <div class="checkbox"><input id="automatic-connection" type="checkbox"><label for="automatic-connection">Tenter une connexion automatique au démarrage</label></div>
+    <div class="checkbox"><input id="remember-email" type="checkbox"><label for="remember-email">Mémoriser l’adresse électronique</label></div>
+    <p class="help">Le mot de passe reste stocké séparément dans le Gestionnaire d’identifiants Windows.</p>
+  </section>
+  <section class="f6-zone" data-zone-name="Import et export" aria-labelledby="formats-heading">
+    <h2 id="formats-heading" tabindex="-1">Import et export</h2>
+    <div class="field"><label for="default-export-format">Format d’export par défaut</label><select id="default-export-format"><option value="gpx">GPX</option><option value="csv">CSV</option><option value="json">JSON SARA</option></select></div>
+    <div class="field"><label for="csv-separator">Séparateur CSV</label><select id="csv-separator"><option value=";">Point-virgule</option><option value=",">Virgule</option><option value="TAB">Tabulation</option></select></div>
+    <div class="checkbox"><input id="confirm-before-overwrite" type="checkbox"><label for="confirm-before-overwrite">Demander une confirmation avant d’écraser un fichier</label></div>
+    <div class="field"><label for="shom-radius-unit">Unité de rayon SHOM par défaut</label><select id="shom-radius-unit"><option value="nm">Milles nautiques (NM)</option><option value="km">Kilomètres (km)</option></select></div>
+  </section>
+  <section class="f6-zone" data-zone-name="Fenêtre principale" aria-labelledby="main-window-heading">
+    <h2 id="main-window-heading" tabindex="-1">Fenêtre principale</h2>
+    <p class="help">Taille de la fenêtre principale au démarrage de l’application, en pourcentage de l’écran. La fenêtre est centrée automatiquement.</p>
+    <div class="field"><label for="main-window-width-percent">Largeur (%)</label><input id="main-window-width-percent" type="number" min="50" max="100" step="1"></div>
+    <div class="field"><label for="main-window-height-percent">Hauteur (%)</label><input id="main-window-height-percent" type="number" min="50" max="100" step="1"></div>
+  </section>
+  <section class="f6-zone" data-zone-name="Fenêtre de visualisation cartographique" aria-labelledby="map-window-heading">
+    <h2 id="map-window-heading" tabindex="-1">Fenêtre de visualisation cartographique</h2>
+
+    <h3>Taille de la fenêtre</h3>
+    <p class="help">Taille de la fenêtre à l’ouverture, en pourcentage de l’écran. Des valeurs distinctes sont utiles car le bandeau des tâches Windows réduit la hauteur utile disponible. La fenêtre est centrée automatiquement.</p>
+    <div class="field"><label for="map-window-width-percent">Largeur (%)</label><input id="map-window-width-percent" type="number" min="50" max="100" step="1"></div>
+    <div class="field"><label for="map-window-height-percent">Hauteur (%)</label><input id="map-window-height-percent" type="number" min="50" max="100" step="1"></div>
+
+    <h3>Couleurs</h3>
+    <div class="field"><label for="map-sea-color">Couleur de la mer</label><input id="map-sea-color" type="color"></div>
+    <div class="field"><label for="map-land-color">Couleur de la terre</label><input id="map-land-color" type="color"></div>
+    <div class="field"><label for="map-route-color">Couleur du tracé de la route</label><input id="map-route-color" type="color"></div>
+
+    <h3>Tracé de route</h3>
+    <div class="field"><label for="map-route-line-width">Épaisseur du tracé (px)</label><input id="map-route-line-width" type="number" min="1" max="10" step="1"></div>
+    <div class="field"><label for="map-route-line-style">Type de trait</label><select id="map-route-line-style"><option value="solid">Continu</option><option value="dashed">Tireté</option><option value="dotted">Pointillé</option></select></div>
+
+    <h3>Étiquettes des points de route</h3>
+    <div class="checkbox"><input id="map-route-labels-visible" type="checkbox"><label for="map-route-labels-visible">Afficher les étiquettes des points de route par défaut</label></div>
+    <div class="field"><label for="map-route-label-font-size">Taille du texte des étiquettes (px)</label><input id="map-route-label-font-size" type="number" min="8" max="24" step="1"></div>
+    <div class="checkbox"><input id="map-route-label-bordered" type="checkbox"><label for="map-route-label-bordered">Encadrer les étiquettes des points de route</label></div>
+
+    <h3>Marques SHOM</h3>
+    <div class="field"><label for="map-marker-size">Taille des icônes (px)</label><input id="map-marker-size" type="number" min="10" max="60" step="1"></div>
+  </section>
+  <section class="f6-zone" data-zone-name="Fichier de configuration" aria-labelledby="config-file-heading">
+    <h2 id="config-file-heading" tabindex="-1">Fichier de configuration</h2>
+    <p id="config-file-path"></p>
+    <div class="actions">
+      <button id="open-config-file" type="button" class="secondary">Ouvrir le fichier de configuration</button>
+      <button id="open-config-directory" type="button" class="secondary">Ouvrir le dossier de configuration</button>
+    </div>
+    <p class="help">Exporter l’ensemble des réglages dans un fichier, ou restaurer une configuration précédemment exportée — utile pour transférer sa configuration d’un poste à l’autre, ou avant une réinstallation.</p>
+    <div class="actions">
+      <button id="export-configuration" type="button" class="secondary">Exporter la configuration</button>
+    </div>
+    <div class="field"><label for="import-configuration-file">Fichier de configuration à importer</label><input id="import-configuration-file" type="file" accept=".toml"></div>
+    <div class="actions">
+      <button id="import-configuration-button" type="button" class="secondary">Importer la configuration</button>
+    </div>
+  </section>
+  <div class="actions"><button type="submit">Enregistrer la configuration</button><button id="reset-configuration" type="button" class="danger">Rétablir la configuration par défaut</button></div>
+</form>
+<section aria-labelledby="messages-heading"><h2 id="messages-heading">Messages</h2><div id="status-message" class="status" role="status" aria-live="polite" aria-atomic="true">Chargement de la configuration…</div></section>
+{% endblock %}

@@ -1,0 +1,95 @@
+*{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:1.1rem;line-height:1.55;margin:0;background:#fff;color:#111}.site-header,main,footer{max-width:82rem;margin:auto;padding:1rem}.site-header{border-bottom:3px solid #222}.app-name{font-size:1.7rem;font-weight:700;margin:0}.tagline{margin:.2rem 0 1rem}nav ul{display:flex;flex-wrap:wrap;gap:.6rem;list-style:none;margin:0;padding:0}nav a,.button-link{display:inline-block;font-weight:700;padding:.65rem 1rem;border:2px solid #111;border-radius:.25rem;background:#111;color:#fff;text-decoration:none}nav a:focus,.button-link:focus,input:focus,button:focus,.table-wrapper:focus{outline:4px solid #000;outline-offset:3px}nav a[aria-current="page"]{text-decoration:underline;text-decoration-thickness:.2rem;text-underline-offset:.25rem}h1,h2,h3{line-height:1.25}.lead{font-size:1.15rem;max-width:60rem}section{border:2px solid #555;border-radius:.35rem;margin:1.25rem 0;padding:1rem}.skip-link{position:absolute;left:-10000px}.skip-link:focus{left:1rem;top:1rem;background:#fff;color:#000;padding:.75rem;border:3px solid #000;z-index:100}.field{margin-bottom:1rem}.field label{display:block;font-weight:700;margin-bottom:.3rem}.help{margin:.3rem 0;font-size:.95rem}input{font:inherit;padding:.6rem;border:2px solid #555;border-radius:.2rem;max-width:100%;width:34rem}input[type="number"]{width:6rem}input[type="color"]{width:4rem;height:2.5rem;padding:.2rem}.checkbox{display:flex;align-items:flex-start;gap:.6rem;margin:1rem 0}.checkbox input{width:1.4rem;height:1.4rem;flex:0 0 auto}.actions,.row-actions{display:flex;flex-wrap:wrap;gap:.6rem}.actions[hidden],.row-actions[hidden]{display:none}.page-actions{margin:1rem 0}.button-link.secondary,button.secondary{background:#fff;color:#111}button{font:inherit;font-weight:700;padding:.65rem 1rem;border:2px solid #111;border-radius:.25rem;background:#111;color:#fff;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}.danger{background:#7a0000;color:#fff}.compact{padding:.35rem .55rem}.coordinates{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1rem}.coordinates input{width:100%}.connection-panel{padding:1rem;border:3px solid #555;background:#f4f4f4}.connection-panel.connected{border-left:10px solid #176b2c}.connection-panel.disconnected{border-left:10px solid #8a2b00}.table-wrapper{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{border:1px solid #555;text-align:left;vertical-align:top;padding:.65rem}thead th{background:#eee}.status{min-height:3rem;padding:.75rem;border-left:6px solid #333;background:#f4f4f4}.status.error{border-left-width:10px;font-weight:700}.warning{border:2px solid #111;padding:.75rem}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:50rem){.site-header,main,footer{padding:.8rem}.row-actions{display:block}.row-actions button{display:block;width:100%;margin:.25rem 0}}@media(prefers-color-scheme:dark){body{background:#111;color:#fff}.site-header{border-color:#ddd}section{border-color:#bbb}input{background:#111;color:#fff;border-color:#ddd}nav a,.button-link,button{background:#fff;color:#000;border-color:#fff}.button-link.secondary,button.secondary{background:#111;color:#fff}.danger{background:#fff;color:#700}.connection-panel,.status{background:#222;color:#fff}.connection-panel.connected{border-left-color:#8ee6a5}.connection-panel.disconnected{border-left-color:#ffb38f}thead th{background:#333}th,td{border-color:#bbb}.warning{border-color:#fff}}
+
+.site-footer{border-top:3px solid #222;margin-top:2rem}
+
+/* Interface double liste de préparation SHOM. */
+select{font:inherit;padding:.55rem;border:2px solid #555;border-radius:.2rem;background:#fff;color:#111;max-width:100%}
+select:focus,.details-panel:focus{outline:4px solid #000;outline-offset:3px}
+.dual-list-layout{display:grid;grid-template-columns:minmax(18rem,1fr) auto minmax(18rem,1fr) auto;gap:1rem;align-items:center}
+.list-panel{min-width:0}.transfer-list{width:100%;min-height:22rem;white-space:nowrap}.horizontal-transfer-buttons,.vertical-move-buttons{display:flex;flex-direction:column;gap:.75rem}.horizontal-transfer-buttons button,.vertical-move-buttons button{min-width:3.25rem;font-size:1.5rem;padding:.5rem}.details-panel{min-height:8rem;padding:1rem;border:2px solid #555;border-radius:.25rem;background:#f4f4f4}.details-list{margin:0}
+@media(max-width:62rem){.dual-list-layout{grid-template-columns:1fr}.horizontal-transfer-buttons,.vertical-move-buttons{flex-direction:row}.transfer-list{min-height:14rem}}
+@media(prefers-color-scheme:dark){select{background:#111;color:#fff;border-color:#ddd}.details-panel{background:#222;color:#fff;border-color:#bbb}}
+
+
+/* Version 0.6.1 : commandes compactes de filtre et de tri. */
+.point-controls{display:flex;flex-wrap:wrap;gap:.75rem 1.25rem;align-items:end;margin:0 0 1rem}
+.compact-control{display:flex;align-items:center;gap:.45rem}
+.compact-control label{font-weight:700;white-space:nowrap}
+.compact-control select{width:auto;min-width:9rem}
+.details-list{margin:0}.details-line{display:flex;gap:.75rem;align-items:baseline;margin:0 0 .5rem}.details-label{flex:0 0 12rem;font-weight:700}.details-value{flex:1 1 auto}
+.details-list dt{font-weight:700}
+.details-list dt::after{content:":"}
+.details-list dd{margin:0;overflow-wrap:anywhere}
+@media(max-width:42rem){.point-controls{display:grid;grid-template-columns:1fr}.compact-control{display:grid;grid-template-columns:5rem minmax(0,1fr)}.compact-control select{width:100%}.details-line{flex-direction:column;align-items:stretch;gap:.15rem}}
+.details-line:focus{outline:2px solid currentColor;outline-offset:2px}
+.details-value-input{flex:1 1 auto;width:auto;border:1px solid currentColor;padding:.2rem .4rem;font:inherit}
+
+/* Version 0.6.4 : route active explicite, bibliothèque compacte et documentation consolidée. */
+
+
+
+.library-route-list{width:100%;min-height:12rem;white-space:nowrap}
+.library-actions{margin-top:.75rem}
+@media(prefers-color-scheme:dark){}
+
+/* Une ligne de détails constitue une unité visuelle et accessible complète. */
+.details-line {
+  margin: 0 0 0.35rem 0;
+}
+
+
+/* Menu contextuel accessible, utilisable au clavier et avec NVDA. */
+.context-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 15rem;
+  padding: 0.35rem;
+  border: 2px solid currentColor;
+  background: Canvas;
+  color: CanvasText;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.35);
+}
+
+.context-menu[hidden] {
+  display: none;
+}
+
+.modal-dialog {
+  position: fixed;
+  z-index: 2000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 32rem;
+  padding: 1.5rem;
+  border: 2px solid currentColor;
+  background: Canvas;
+  color: CanvasText;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.35);
+}
+
+.modal-dialog[hidden] {
+  display: none;
+}
+
+.modal-dialog h2 {
+  margin-top: 0;
+}
+
+.context-menu button {
+  display: block;
+  width: 100%;
+  margin: 0;
+  text-align: left;
+}
+
+
+/* Journal de messages accessible et copiable au clavier. */
+.message-log {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 7rem;
+  resize: vertical;
+  font: inherit;
+}

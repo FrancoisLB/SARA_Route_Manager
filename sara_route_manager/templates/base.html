@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SARA Route Manager{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <script src="{{ url_for('static', filename='js/file_dialogs.js', v='0.7.2.0') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/route_math.js', v='0.7.2.0') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/keyboard_zones.js', v='0.7.2.0') }}" defer></script>
+  {% block scripts %}{% endblock %}
+</head>
+<body data-version="{{ version }}">
+  <a class="skip-link" href="#main-content">Aller au contenu principal</a>
+
+  <header class="site-header">
+    <div>
+      <p class="app-name">SARA Route Manager</p>
+      <p class="tagline">Préparation accessible des routes SARA Navigation sous Windows</p>
+    </div>
+
+    <nav aria-label="Navigation principale" role="navigation">
+      <ul>
+        <li><a href="/" {% if request.path == '/' %}aria-current="page"{% endif %}>Compte</a></li>
+        <li><a href="/routes" {% if request.path == '/routes' %}aria-current="page"{% endif %}>Bibliothèque</a></li>
+        <li><a href="/editor" {% if request.path == '/editor' %}aria-current="page"{% endif %}>Créer une route</a></li>
+        <li><a href="/configuration" {% if request.path == '/configuration' %}aria-current="page"{% endif %}>Configuration</a></li>
+        <li><a href="/about" {% if request.path == '/about' %}aria-current="page"{% endif %}>À propos</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main-content" tabindex="-1" role="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <p>SARA Route Manager — version {{ version }}.</p>
+    <p>Gestionnaire indépendant de préparation de routes compatibles avec SARA Navigation.</p>
+  </footer>
+</body>
+</html>

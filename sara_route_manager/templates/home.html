@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Compte — SARA Route Manager{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/account.js', v='0.7.2.0') }}" defer></script>{% endblock %}
+{% block content %}
+<h1 id="account-title" tabindex="-1">Compte</h1>
+<section class="f6-zone" data-zone-name="Vérification du compte" aria-labelledby="account-status-heading">
+  <h2 id="account-status-heading" tabindex="-1">Vérification du compte</h2>
+  <div id="connection-panel" class="connection-panel" role="status" aria-live="polite">Vérification en cours…</div>
+</section>
+<section class="f6-zone" data-zone-name="Connexion" id="login-section" aria-labelledby="login-heading">
+  <h2 id="login-heading" tabindex="-1">Connexion</h2>
+  <form id="login-form">
+    <div class="field"><label for="email">Adresse électronique</label><input id="email" type="email" autocomplete="username" required></div>
+    <div class="field"><label for="password">Mot de passe</label><input id="password" type="password" autocomplete="current-password" required></div>
+    <div class="checkbox"><input id="remember" type="checkbox" checked><label for="remember">Mémoriser les identifiants sur ce PC</label></div>
+    <div class="actions"><button type="submit">Se connecter</button><button id="logout-button" type="button" class="secondary">Se déconnecter</button><button id="forget-button" type="button" class="danger">Oublier les identifiants</button></div>
+  </form>
+</section>
+<section class="f6-zone" data-zone-name="Synchronisation" aria-labelledby="sync-heading"><h2 id="sync-heading" tabindex="-1">Synchronisation</h2><a class="button-link" href="/routes">Ouvrir la bibliothèque et synchroniser</a></section>
+<section aria-labelledby="messages-heading"><h2 id="messages-heading">Messages</h2><div id="status-message" class="status" role="status" aria-live="polite">Application prête.</div></section>
+{% endblock %}

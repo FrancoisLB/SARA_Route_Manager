@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carte de la route — SARA Route Manager</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+  <script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/file_dialogs.js', v='0.7.2.0') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/route_math.js', v='0.7.2.0') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/map.js', v='0.7.2.0') }}" defer></script>
+  <style>
+    /*
+      Mise en page propre à cette page : les écrans sont en général plus
+      larges que hauts, donc les actions (export CSV/SVG, fermer) sont
+      placées en colonne à droite de la carte plutôt qu'empilées en
+      dessous — ça laisse à la carte toute la hauteur disponible de la
+      fenêtre, plutôt que de risquer de pousser les boutons hors champ sur
+      une fenêtre haute mais peu large.
+
+      Pas de bandeau d'en-tête (nom de l'application, sous-titre) : cette
+      fenêtre n'a pas de menu de navigation à identifier comme les 5 pages
+      principales, et le titre de la fenêtre Windows porte déjà cette
+      information (déjà annoncé par NVDA). Le H1 (nom de la route) est
+      donc le premier élément visible, immédiatement suivi du résumé
+      (nombre de points, distance totale).
+
+      `max-width:none` sur le contenu principal : la limite de 82rem de
+      main.css est pensée pour la lisibilité des pages de texte de
+      l'application, pas pour cette fenêtre utilitaire, où l'espace ainsi
+      perdu manquerait justement à la carte.
+
+      `margin:0` : le `margin:auto` de main.css centre normalement un bloc
+      à largeur limitée, mais en contexte flexbox (body étant
+      `display:flex`), un `margin:auto` sur l'axe transversal fait que
+      l'élément se réduit à la largeur de son contenu et se centre au lieu
+      de s'étirer sur toute la largeur disponible — même une fois
+      `max-width` neutralisé.
+    */
+    html, body { height: 100%; margin: 0; }
+    body { display: flex; flex-direction: column; }
+    main {
+      max-width: none; margin: 0; width: 100%; box-sizing: border-box;
+      /* Petite bande visible entre le cadre de la fenêtre et le contenu
+         (notamment la carte), pour ne pas coller directement aux bords. */
+      padding: 1.25rem;
+      flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;
+    }
+    .map-layout { flex: 1 1 auto; display: flex; gap: 1.5rem; min-height: 0; margin-top: 0.5rem; }
+    .map-side-actions { display: flex; flex-direction: column; gap: 0.5rem; flex-shrink: 0; width: 16rem; order: 2; }
+    .map-side-actions button { width: 100%; white-space: normal; }
+    #marks-filter { border: 1px solid currentColor; border-radius: 0.25rem; padding: 0.5rem 0.75rem; margin: 0; font-size: 0.85rem; }
+    #marks-filter .checkbox { margin: 0.3rem 0; }
+    #display-settings { border: 1px solid currentColor; border-radius: 0.25rem; padding: 0.5rem 0.75rem; margin: 0; font-size: 0.85rem; }
+    #display-settings .checkbox { margin: 0.4rem 0 0.1rem; }
+    /* Les étiquettes de nom de point/marque sur la carte héritaient de la
+       taille de texte générale de l'application (1,1rem), contribuant au
+       chevauchement dans les secteurs denses. */
+    .leaflet-tooltip { font-size: 0.75rem; }
+    .grid-label { font-size: 0.7rem; color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000; white-space: nowrap; pointer-events: none; }
+    .nautical-scale-bar { border: 2px solid #000; border-top: none; background: rgba(255,255,255,0.85); color: #000; padding: 0.1rem 0.4rem; font-size: 0.75rem; text-align: center; }
+    /* Graduations sur les 4 bords de la carte, espacées selon la même
+       valeur que la barre d'échelle (demandé explicitement). Superposition
+       en pointeur désactivé pour ne jamais gêner le zoom/déplacement natif
+       de la carte en dessous. */
+    .nautical-tick-overlay { position: absolute; top: 0; left: 0; pointer-events: none; }
+    .nautical-tick { position: absolute; background: #fff; box-shadow: 0 0 2px #000, 0 0 2px #000; }
+    .nautical-tick-vertical { width: 2px; height: 8px; }
+    .nautical-tick-vertical.nautical-tick-top { top: 0; }
+    .nautical-tick-vertical.nautical-tick-bottom { bottom: 0; }
+    .nautical-tick-horizontal { height: 2px; width: 8px; }
+    .nautical-tick-horizontal.nautical-tick-left { left: 0; }
+    .nautical-tick-horizontal.nautical-tick-right { right: 0; }
+    /* Sans cette règle, les retours à la ligne (\n) du texte affiché sont
+       ignorés par le navigateur et tout s'affiche sur une seule ligne —
+       constaté après test réel. `pre-line` les restitue visuellement tout
+       en laissant les espaces normaux se comporter normalement. */
+    #marker-info-dialog-description { white-space: pre-line; }
+    /* Case « Afficher les noms des marques » décochée : masque uniquement
+       les étiquettes des marques SHOM environnantes, pas celles des points
+       de la route elle-même (jamais masquables, nécessaires au repérage). */
+    #map-container.hide-mark-labels .mark-tooltip { display: none; }
+    /* Case « Afficher les étiquettes des points de route » décochée. */
+    #map-container.hide-route-labels .route-point-tooltip { display: none; }
+    /* Réglage « Encadrer les étiquettes » désactivé (page Configuration) :
+       texte blanc avec contour sombre pour rester lisible sur tous les
+       fonds, plutôt qu'un encadré qui masque des éléments de la carte. */
+    #map-container.route-label-no-frame .route-point-tooltip {
+      background: transparent; border: none; box-shadow: none; padding: 0;
+      color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000;
+    }
+    #map-container { flex: 1 1 auto; min-height: 0; order: 1; }
+    /* main.css ne redéfinit pas la marge du H1 : la marge par défaut du
+       navigateur (habituellement ~0,67em en haut et en bas) laissait un
+       grand espace avant le résumé juste en dessous. */
+    #map-route-name { margin-bottom: 0.3rem; }
+    #map-route-summary { margin-top: 0; }
+  </style>
+</head>
+<body data-version="{{ version }}">
+  <main id="main-content" tabindex="-1" role="main">
+    <h1 id="map-route-name" tabindex="-1">Chargement de la route…</h1>
+    <p id="map-route-summary"></p>
+
+    <div id="map-status" role="status" aria-live="polite" class="visually-hidden">Chargement de la carte…</div>
+
+    <div class="map-layout">
+      <div class="map-side-actions">
+        <button id="export-segments-csv" type="button" class="secondary" disabled>Exporter les segments en CSV</button>
+        <button id="export-map-svg" type="button" class="secondary" disabled>Exporter la carte en SVG</button>
+        <button id="close-map-window" type="button" class="secondary">Fermer</button>
+        <fieldset id="display-settings">
+          <legend>Affichage</legend>
+          <div class="checkbox"><input id="toggle-grid" type="checkbox"><label for="toggle-grid">Afficher la grille latitude/longitude</label></div>
+          <div class="checkbox"><input id="toggle-measure-tool" type="checkbox"><label for="toggle-measure-tool">Activer l’outil de mesure (cliquer-glisser)</label></div>
+          <div class="checkbox"><input id="toggle-route-labels" type="checkbox"><label for="toggle-route-labels">Afficher les étiquettes des points de route</label></div>
+        </fieldset>
+        <fieldset id="marks-filter">
+          <legend>Marques SHOM affichées</legend>
+          <div class="checkbox"><input id="toggle-mark-labels" type="checkbox" checked><label for="toggle-mark-labels">Afficher les noms des marques</label></div>
+          <div class="checkbox"><input id="marks-filter-laterale" type="checkbox" class="marks-category-checkbox" value="Latérale" checked><label for="marks-filter-laterale">Latérales</label></div>
+          <div class="checkbox"><input id="marks-filter-cardinale" type="checkbox" class="marks-category-checkbox" value="Cardinale" checked><label for="marks-filter-cardinale">Cardinales</label></div>
+          <div class="checkbox"><input id="marks-filter-danger" type="checkbox" class="marks-category-checkbox" value="Danger isolé" checked><label for="marks-filter-danger">Danger isolé</label></div>
+          <div class="checkbox"><input id="marks-filter-eaux-saines" type="checkbox" class="marks-category-checkbox" value="Eaux saines" checked><label for="marks-filter-eaux-saines">Eaux saines</label></div>
+          <div class="checkbox"><input id="marks-filter-speciale" type="checkbox" class="marks-category-checkbox" value="Marque spéciale" checked><label for="marks-filter-speciale">Marques spéciales</label></div>
+          <div class="checkbox"><input id="marks-filter-amer" type="checkbox" class="marks-category-checkbox" value="Amer" checked><label for="marks-filter-amer">Amers</label></div>
+          <div class="checkbox"><input id="marks-filter-autre" type="checkbox" class="marks-category-checkbox" value="Autre" checked><label for="marks-filter-autre">Autres</label></div>
+        </fieldset>
+      </div>
+
+      <!--
+        Contenu strictement illustratif : jamais un canal d'information
+        exclusif. Toute donnée montrée ici (points, ordre de la route) reste
+        disponible sous forme textuelle dans l'éditeur (zones « Composer la
+        route » et « Analyse de la route »).
+
+        `forced-color-adjust: none` empêche le mode Contraste élevé de
+        Windows de remplacer les couleurs de la carte (mer, terre, tracé,
+        points) par la palette système : ces couleurs codent une information
+        réelle (terre/mer, type de marque à venir) et doivent rester lisibles
+        telles que définies, y compris pour les utilisateurs malvoyants qui
+        utilisent ce mode. Reste à vérifier en conditions réelles.
+      -->
+      <div
+        id="map-container"
+        role="img"
+        aria-label="Carte illustrative de la route. Voir l’éditeur pour le détail des points."
+        style="background:#1f6fa3;border:1px solid currentColor;forced-color-adjust:none;"
+      ></div>
+    </div>
+
+    <!--
+      Bandeau de citation du trait de côte, rempli dynamiquement selon la
+      couche effectivement utilisée (Limite terre-mer ou HISTOLITT). Pour
+      HISTOLITT, la licence exige en plus les logos IGN et SHOM avec liens.
+    -->
+    <p id="coastline-credit" class="help"></p>
+
+    <div id="measure-dialog" class="modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="measure-dialog-title" aria-describedby="measure-dialog-description" hidden>
+      <h2 id="measure-dialog-title">Mesure entre deux points</h2>
+      <p id="measure-dialog-description"></p>
+      <div class="actions">
+        <button id="measure-dialog-copy" type="button">Copier</button>
+        <button id="measure-dialog-close" type="button" class="secondary">Fermer</button>
+      </div>
+    </div>
+
+    <div id="marker-info-dialog" class="modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="marker-info-dialog-title" aria-describedby="marker-info-dialog-description" hidden>
+      <h2 id="marker-info-dialog-title">Informations sur la marque</h2>
+      <p id="marker-info-dialog-description"></p>
+      <div class="actions">
+        <button id="marker-info-dialog-copy" type="button">Copier</button>
+        <button id="marker-info-dialog-close" type="button" class="secondary">Fermer</button>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
