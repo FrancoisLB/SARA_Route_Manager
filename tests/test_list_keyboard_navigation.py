@@ -14,8 +14,8 @@ Classes présentes :
   test_library_lists_open_on_enter_still_present.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 from pathlib import Path
 
@@ -54,9 +54,9 @@ class TestListKeyboardNavigation:
         Demandé en plus du raccourci clavier Entrée, déjà en place.
         """
         script = (ROOT / "sara_route_manager/static/js/routes.js").read_text(encoding="utf-8")
-        assert 'list.addEventListener("dblclick", () => {' in script
-        assert "function openButtonIdFor(listId)" in script
-        assert 'document.getElementById(openButtonIdFor(id)).click();' in script
+        # 0.8.0 : liste unique, le double-clic appelle directement openSelected.
+        assert 'list.addEventListener("dblclick", openSelected);' in script
+        assert "async function openSelected()" in script
 
     def test_library_lists_open_on_enter_still_present(self) -> None:
         """Vérifier que le raccourci Entrée pour ouvrir une route existait déjà et reste actif.

@@ -6,11 +6,13 @@ Module : sara_route_manager.firebase_client
 Description : Authentification et synchronisation des routes SARA via Firebase.
 Classes présentes :
 - SaraConnectionError : exception réseau ou serveur.
-- FirebaseSession : sign_in, list_routes, upload_route, delete_route, route_exists, close.
+- SaraRouteExistsError : l'une de vos routes en ligne porte déjà ce nom (écrasement possible).
+- SaraRouteOwnedByOtherError : une route d'un autre utilisateur porte déjà ce nom (mise en ligne impossible).
+- FirebaseSession : sign_in, list_routes, upload_route, delete_route, route_exists, existing_route_owner, close.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 from dataclasses import dataclass
 from typing import Any
@@ -20,6 +22,11 @@ import requests
 
 from .models import SaraRoute, ValidationError
 
+# Clé Web Firebase de SARA Navigation. Ce n'est pas un secret : une clé Web
+# Firebase identifie seulement le projet et est embarquée dans toute application
+# cliente (celle de l'iPhone, par exemple). La sécurité des données repose sur
+# les règles de la base et sur l'authentification de l'utilisateur, jamais sur
+# cette clé. Une alerte « secret scanning » à son sujet est un faux positif.
 FIREBASE_API_KEY = "AIzaSyCpXCdtgBkLAnmox24wovZBUE5_IcxzleQ"
 DATABASE_URL = "https://sara-nav-release-default-rtdb.europe-west1.firebasedatabase.app"
 AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword"
@@ -27,6 +34,14 @@ AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPasswor
 
 class SaraConnectionError(RuntimeError):
     """Signaler une erreur compréhensible de connexion au service SARA."""
+
+
+class SaraRouteExistsError(SaraConnectionError):
+    """Signaler que l'une de vos routes en ligne porte déjà ce nom (écrasement possible)."""
+
+
+class SaraRouteOwnedByOtherError(SaraConnectionError):
+    """Signaler qu'une route d'un autre utilisateur porte déjà ce nom (mise en ligne impossible)."""
 
 
 @dataclass(slots=True)
@@ -120,8 +135,20 @@ class FirebaseSession:
         community.sort(key=sort_key)
         return mine, community, warnings
 
-    def route_exists(self, route_name: str) -> bool:
-        """Vérifier si un nom de route existe déjà dans Firebase."""
+    def existing_route_owner(self, route_name: str) -> tuple[bool, str | None]:
+        """Chercher une route en ligne de ce nom et son propriétaire.
+
+        Parameters
+        ----------
+        route_name : str
+            Nom de la route (clé sous ``/courses``).
+
+        Returns
+        -------
+        tuple[bool, str | None]
+            ``(existe, uid_du_propriétaire)`` ; l'UID est ``None`` si la route
+            n'existe pas ou n'indique pas de propriétaire.
+        """
         self._require_session()
         url = f"{DATABASE_URL}/courses/{quote(route_name, safe='')}.json"
         try:
@@ -130,13 +157,41 @@ class FirebaseSession:
             raise SaraConnectionError("Impossible de vérifier le nom de la route.") from exc
         if not response.ok:
             raise SaraConnectionError(f"Vérification refusée par Firebase ({response.status_code}).")
-        return response.json() is not None
+        data = response.json()
+        if data is None:
+            return False, None
+        owner = data.get("owner") if isinstance(data, dict) else None
+        return True, owner
+
+    def route_exists(self, route_name: str) -> bool:
+        """Vérifier si un nom de route existe déjà dans Firebase."""
+        return self.existing_route_owner(route_name)[0]
 
     def upload_route(self, route: SaraRoute, overwrite: bool = False) -> None:
-        """Envoyer une route dans ``/courses/<nom>`` comme l’application iOS."""
+        """Mettre une route en ligne dans ``/courses/<nom>``, comme « Déposer en ligne » sur iPhone.
+
+        Les deux cas de nom déjà pris sont distingués comme dans SARA Navigation :
+        une route d'un autre utilisateur bloque la mise en ligne, une de vos
+        propres routes peut être écrasée après confirmation.
+
+        Raises
+        ------
+        SaraRouteOwnedByOtherError
+            Si une route d'un autre utilisateur porte déjà ce nom (même avec ``overwrite``).
+        SaraRouteExistsError
+            Si l'une de vos routes porte ce nom et que ``overwrite`` est faux.
+        """
         self._require_session()
-        if not overwrite and self.route_exists(route.name):
-            raise SaraConnectionError("Une route portant ce nom existe déjà sur SARA.")
+        exists, owner = self.existing_route_owner(route.name)
+        if exists and owner != self.local_id:
+            raise SaraRouteOwnedByOtherError(
+                "Cette route ne peut pas être mise en ligne. Une route avec le même nom "
+                "appartenant à un autre utilisateur existe déjà."
+            )
+        if exists and not overwrite:
+            raise SaraRouteExistsError(
+                "Une de vos routes mises en ligne a le même nom. Voulez-vous l’écraser ?"
+            )
         url = f"{DATABASE_URL}/courses/{quote(route.name, safe='')}.json"
         payload = route.to_sara_dict(self.local_id or "")
         try:

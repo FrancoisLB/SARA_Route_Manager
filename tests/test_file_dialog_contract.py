@@ -8,8 +8,8 @@ Classes présentes :
 - FileDialogContractTests : test_desktop_api_contract, test_shared_javascript_contract.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 from pathlib import Path
 import unittest

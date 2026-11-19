@@ -8,8 +8,8 @@ Classes présentes :
 - KeyboardListTests : test_library_keyboard_contract, test_editor_keyboard_contract, test_context_menu_markup.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 from pathlib import Path
 import unittest

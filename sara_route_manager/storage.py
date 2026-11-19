@@ -5,11 +5,11 @@ from __future__ import annotations
 Module : sara_route_manager.storage
 Description : Sauvegarde, lecture et index local des routes SARA.
 Classes présentes :
-- LocalRouteStorage : set_directory, save, list_routes, load.
+- LocalRouteStorage : set_directory, save, list_routes, load, exists, delete.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 import json
 import re
@@ -68,3 +68,38 @@ class LocalRouteStorage:
         if not isinstance(data, dict):
             raise ValidationError("Le fichier local ne contient pas une route valide.")
         return SaraRoute.from_local_dict(data, remote_key=data.get("remoteKey"))
+
+    def exists(self, route_name: str) -> bool:
+        """Indiquer si une route locale portera le même fichier que ce nom.
+
+        Parameters
+        ----------
+        route_name : str
+            Nom de la route à enregistrer.
+
+        Returns
+        -------
+        bool
+            ``True`` si un fichier du même nom existe déjà dans le dossier.
+        """
+        # Même règle de nettoyage que `save`, pour prédire le nom du fichier.
+        safe_name = re.sub(r"[^A-Za-z0-9 _-]", "_", route_name).strip() or "route"
+        return (self.directory / f"{safe_name}.json").is_file()
+
+    def delete(self, filename: str) -> None:
+        """Supprimer une route locale, sans jamais sortir du dossier autorisé.
+
+        Parameters
+        ----------
+        filename : str
+            Nom du fichier JSON à supprimer (tout chemin est réduit à son nom).
+
+        Raises
+        ------
+        FileNotFoundError
+            Si le fichier n'existe pas ou n'est pas un fichier JSON.
+        """
+        path = self.directory / Path(filename).name
+        if path.suffix.lower() != ".json" or not path.is_file():
+            raise FileNotFoundError("La route locale demandée est introuvable.")
+        path.unlink()

@@ -7,16 +7,17 @@ Description : Démarrage du serveur local et de la fenêtre Windows pywebview, a
 Classes présentes :
 - LocalServer : start, stop.
 - DesktopApi : _set_window, save_file, choose_routes_directory, open_map_window, close_map_window.
-Fonctions présentes : find_free_port, main.
+Fonctions présentes : find_free_port, install_first_page_refresh, main.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 import argparse
 import base64
 import socket
 import threading
+import time
 import webbrowser
 from pathlib import Path
 from typing import Any
@@ -44,7 +45,7 @@ class DesktopApi:
         self._window: Any | None = None
         # Fenêtre secondaire de visualisation cartographique : conservée pour
         # être réutilisée (rechargée) plutôt que dupliquée à chaque clic sur
-        # « Visualiser la route ».
+        # « Voir la carte ».
         self._map_window: Any | None = None
 
     def _set_window(self, window: Any) -> None:
@@ -238,10 +239,10 @@ class DesktopApi:
     def open_map_window(self, url: str) -> None:
         """Ouvrir ou réutiliser la fenêtre de visualisation cartographique.
 
-        Un deuxième clic sur « Visualiser la route » alors que la fenêtre
+        Un deuxième clic sur « Voir la carte » alors que la fenêtre
         est déjà ouverte recharge cette même fenêtre avec le nouvel
         instantané, plutôt que d'en empiler une seconde : c'est le bouton
-        « Visualiser la route » de l'éditeur qui joue le rôle de
+        « Voir la carte » de l'éditeur qui joue le rôle de
         rafraîchissement, pas un bouton dédié dans la fenêtre carte.
 
         Parameters
@@ -369,6 +370,62 @@ def find_free_port() -> int:
         return int(sock.getsockname()[1])
 
 
+# Délai (en secondes) entre la fin du premier chargement et le rechargement
+# unique de la page d'accueil (voir `install_first_page_refresh`).
+FIRST_PAGE_REFRESH_DELAY = 1.0
+
+
+def install_first_page_refresh(window: Any, start_url: str, delay: float = FIRST_PAGE_REFRESH_DELAY) -> None:
+    """Recharger une seule fois la première page, pour exposer ses repères à NVDA.
+
+    Constat (version 0.9.3) : au tout premier chargement dans la fenêtre
+    Edge WebView2, NVDA n'affiche aucun repère (bannière, navigation,
+    principal, pied de page) dans sa liste NVDA+F7, alors que ces repères
+    existent bien dans le HTML et apparaissent dès qu'une page est chargée
+    par un clic sur la navigation. La première page est chargée avant que
+    le lecteur d'écran n'ait été détecté, et l'arborescence d'accessibilité
+    n'est alors pas construite. Recharger cette page une fois, quelques
+    instants après son chargement, produit le même résultat qu'un clic sur
+    « Compte ».
+
+    Le rechargement n'a lieu que si l'utilisateur est toujours sur la page
+    de départ (il n'a pas déjà navigué), et une seule fois : un drapeau
+    empêche toute boucle, l'événement ``loaded`` étant émis à nouveau après
+    chaque chargement.
+
+    Parameters
+    ----------
+    window : Any
+        Fenêtre pywebview (``events.loaded``, ``get_current_url``,
+        ``load_url``).
+    start_url : str
+        Adresse de la page de départ, sans barre oblique finale.
+    delay : float, default=FIRST_PAGE_REFRESH_DELAY
+        Attente avant le rechargement, en secondes.
+    """
+    state = {"done": False}
+
+    def refresh() -> None:
+        # Laisser le temps au lecteur d'écran de se connecter à la fenêtre.
+        time.sleep(delay)
+        try:
+            current = str(window.get_current_url() or "").rstrip("/")
+            if current == start_url.rstrip("/"):
+                window.load_url(start_url)
+        except Exception:
+            # Un échec ne doit jamais gêner l'application : la page reste
+            # utilisable, et un clic sur la navigation reconstruit les repères.
+            get_logger().exception("Rechargement de la première page impossible")
+
+    def on_loaded() -> None:
+        if state["done"]:
+            return
+        state["done"] = True
+        threading.Thread(target=refresh, name="first-page-refresh", daemon=True).start()
+
+    window.events.loaded += on_loaded
+
+
 def main() -> None:
     """Démarrer pywebview par défaut ou le navigateur en mode diagnostic."""
     parser = argparse.ArgumentParser(description="Gestionnaire de routes SARA Navigation")
@@ -435,6 +492,7 @@ def main() -> None:
         )
         # L'attribut privé évite que pywebview parcoure les objets .NET internes.
         desktop_api._set_window(window)
+        install_first_page_refresh(window, url)
         logger.info("Ouverture de la fenêtre pywebview avec Edge WebView2")
         webview.start(gui="edgechromium", debug=False)
     except Exception:

@@ -16,8 +16,8 @@ Classes présentes :
 - TestSaveFileDirectoryKind : test_save_file_uses_backups_directory_for_config.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 import io
 from pathlib import Path

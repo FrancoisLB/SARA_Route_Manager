@@ -9,8 +9,8 @@ Classes présentes :
   test_documented_version.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 from pathlib import Path
 import unittest
@@ -48,9 +48,9 @@ class EditorContractTests(unittest.TestCase):
 
     def test_documented_version(self) -> None:
         """Vérifier la cohérence du numéro de version principal."""
-        self.assertEqual((ROOT / "VERSION.txt").read_text(encoding="utf-8").strip(), "0.7.2.0")
+        self.assertEqual((ROOT / "VERSION.txt").read_text(encoding="utf-8").strip(), "0.9.4")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("SARA Route Manager 0.7.2.0", readme)
+        self.assertIn("SARA Route Manager 0.9.4", readme)
 
 
 if __name__ == "__main__":

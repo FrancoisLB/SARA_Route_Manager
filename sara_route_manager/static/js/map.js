@@ -28,8 +28,8 @@
 // (par exemple __version__/__date__) avec file_dialogs.js et route_math.js,
 // chargés globalement sur cette même page.
 (function () {
-  const __version__ = "0.7.2.0";
-  const __date__ = "2026-08-04";
+  const __version__ = "0.9.4";
+  const __date__ = "2026-11-19";
 
   const statusElement = document.getElementById("map-status");
   const routeNameElement = document.getElementById("map-route-name");

@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}SARA Route Manager{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-  <script src="{{ url_for('static', filename='js/file_dialogs.js', v='0.7.2.0') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/route_math.js', v='0.7.2.0') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/keyboard_zones.js', v='0.7.2.0') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/file_dialogs.js', v='0.9.4') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/export_dialog.js', v='0.9.4') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/route_math.js', v='0.9.4') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/keyboard_zones.js', v='0.9.4') }}" defer></script>
   {% block scripts %}{% endblock %}
 </head>
 <body data-version="{{ version }}">

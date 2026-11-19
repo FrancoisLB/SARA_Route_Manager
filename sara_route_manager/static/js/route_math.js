@@ -19,8 +19,8 @@
  * buildRouteSegments, csvCell, buildSegmentsCsvRows.
  */
 
-const ROUTE_MATH_VERSION = "0.7.2";
-const ROUTE_MATH_DATE = "2026-08-04";
+const ROUTE_MATH_VERSION = "0.9.4";
+const ROUTE_MATH_DATE = "2026-11-19";
 
 /**
  * Calculer la distance orthodromique entre deux points en milles nautiques.

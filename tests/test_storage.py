@@ -12,8 +12,8 @@ Classes présentes :
   test_object_code_survives_save_and_load, test_list_routes_after_save.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 from pathlib import Path
 

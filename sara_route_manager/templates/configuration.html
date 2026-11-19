@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Configuration — SARA Route Manager{% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/configuration.js', v='0.7.2.0') }}" defer></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/configuration.js', v='0.9.4') }}" defer></script>{% endblock %}
 {% block content %}
 <h1 id="configuration-title" tabindex="-1">Configuration</h1>
 <p class="lead">Définissez le répertoire des routes et les préférences générales de l’application.</p>
@@ -13,7 +13,7 @@
       <p id="routes-help" class="help">Ce dossier unique est utilisé pour les routes importées, exportées et enregistrées localement.</p>
     </div>
     <div class="actions">
-      <button id="choose-routes-directory" type="button" class="secondary">Choisir le répertoire des routes</button>
+      <button id="choose-routes-directory" type="button" class="secondary">Choisir le répertoire des routes…</button>
       <button id="open-routes-directory" type="button" class="secondary">Ouvrir le répertoire des routes</button>
     </div>
   </section>
@@ -28,7 +28,7 @@
     <div class="field"><label for="default-export-format">Format d’export par défaut</label><select id="default-export-format"><option value="gpx">GPX</option><option value="csv">CSV</option><option value="json">JSON SARA</option></select></div>
     <div class="field"><label for="csv-separator">Séparateur CSV</label><select id="csv-separator"><option value=";">Point-virgule</option><option value=",">Virgule</option><option value="TAB">Tabulation</option></select></div>
     <div class="checkbox"><input id="confirm-before-overwrite" type="checkbox"><label for="confirm-before-overwrite">Demander une confirmation avant d’écraser un fichier</label></div>
-    <div class="field"><label for="shom-radius-unit">Unité de rayon SHOM par défaut</label><select id="shom-radius-unit"><option value="nm">Milles nautiques (NM)</option><option value="km">Kilomètres (km)</option></select></div>
+    <div class="field"><label for="shom-radius-unit">Unité de rayon SHOM par défaut</label><select id="shom-radius-unit"><option value="nm">Milles nautiques</option><option value="km">Kilomètres (km)</option></select></div>
   </section>
   <section class="f6-zone" data-zone-name="Fenêtre principale" aria-labelledby="main-window-heading">
     <h2 id="main-window-heading" tabindex="-1">Fenêtre principale</h2>
@@ -70,12 +70,12 @@
     </div>
     <p class="help">Exporter l’ensemble des réglages dans un fichier, ou restaurer une configuration précédemment exportée — utile pour transférer sa configuration d’un poste à l’autre, ou avant une réinstallation.</p>
     <div class="actions">
-      <button id="export-configuration" type="button" class="secondary">Exporter la configuration</button>
+      <button id="export-configuration" type="button" class="secondary">Exporter la configuration…</button>
     </div>
-    <div class="field"><label for="import-configuration-file">Fichier de configuration à importer</label><input id="import-configuration-file" type="file" accept=".toml"></div>
     <div class="actions">
-      <button id="import-configuration-button" type="button" class="secondary">Importer la configuration</button>
+      <button id="import-configuration-button" type="button" class="secondary">Importer la configuration…</button>
     </div>
+    <input id="import-configuration-file" type="file" accept=".toml" class="visually-hidden" tabindex="-1" aria-hidden="true">
   </section>
   <div class="actions"><button type="submit">Enregistrer la configuration</button><button id="reset-configuration" type="button" class="danger">Rétablir la configuration par défaut</button></div>
 </form>

@@ -11,7 +11,7 @@ Conçu pour Windows 11 avec le lecteur d’écran NVDA. L’accès au clavier ne
 Hiérarchie par page :
 
 - **Compte** (`/`) : `H1` Compte ; `H2` Vérification du compte, Connexion, Synchronisation, Messages.
-- **Bibliothèque** (`/routes`) : `H1` Bibliothèque des routes ; `H2` Routes personnelles, Routes partagées, Routes enregistrées sur ce PC, Messages.
+- **Bibliothèque** (`/routes`) : `H1` Bibliothèque des routes ; `H2` Filtrer la liste, Routes, Messages (liste unique avec filtre radio ; boîte d’export commune).
 - **Créer une route** (`/editor`) — le `H1` reflète le contexte réel (« Créer une route », « Nouvelle route : *nom* », « Modifier : *nom* ») : `H2` Route en cours, Choisir des points, Composer la route, Informations sur le point, Analyse de la route, Enregistrement et export, Messages ; `H3` Points importés : nombre, Points de la route : nombre.
 - **Configuration** (`/configuration`) : `H1` Configuration ; `H2` Répertoire des routes, Compte SARA, Import et export, Fenêtre principale, Fenêtre de visualisation cartographique, Fichier de configuration, Messages ; `H3` (dans la zone fenêtre carte) Taille de la fenêtre, Couleurs, Tracé de route, Étiquettes des points de route, Marques SHOM.
 - **À propos** (`/about`) : `H1` À propos de SARA Route Manager ; `H2` Informations générales, Périmètre, Licence, Avertissement, Référence et remerciements, Documentation, Assistance technique.
@@ -82,7 +82,9 @@ La page `/map` (`templates/map.html`, `static/js/map.js`) est une page autonome,
 
 La route active lui est transmise par un **jeton temporaire côté serveur** (`POST /api/map/token`, `GET /api/map/data/<jeton>`, stockage en mémoire dans `ApplicationState.map_tokens` avec expiration après 10 minutes) plutôt que par `sessionStorage`. Ce choix garantit un comportement identique en mode pywebview et en mode navigateur : `sessionStorage` se partage automatiquement entre onglets ouverts par `window.open()` en navigateur, mais pas nécessairement entre deux fenêtres pywebview créées séparément côté Python.
 
-`DesktopApi.open_map_window(url)` réutilise la fenêtre carte déjà ouverte (rechargement via `load_url`) plutôt que d'en créer une seconde ; en mode navigateur, une cible `window.open()` nommée (`sara_map_window`) obtient nativement le même comportement. Aucun bouton de rafraîchissement n'existe dans la fenêtre carte elle-même : c'est le bouton « Visualiser la route » de l'éditeur qui joue ce rôle, en rechargeant la fenêtre existante avec un nouvel instantané.
+**Premier chargement et NVDA** : au tout premier chargement dans Edge WebView2, NVDA ne montre aucun repère (NVDA+F7) sur la page de départ, alors qu'ils existent dans le HTML. `install_first_page_refresh` (`__main__.py`) recharge donc cette page **une seule fois**, une seconde après son chargement, tant que l'utilisateur n'a pas navigué ; un clic sur la navigation donnait déjà le bon résultat. Correctif introduit en 0.9.4, à confirmer sur PC avec NVDA.
+
+`DesktopApi.open_map_window(url)` réutilise la fenêtre carte déjà ouverte (rechargement via `load_url`) plutôt que d'en créer une seconde ; en mode navigateur, une cible `window.open()` nommée (`sara_map_window`) obtient nativement le même comportement. Aucun bouton de rafraîchissement n'existe dans la fenêtre carte elle-même : c'est le bouton « Voir la carte » de l'éditeur qui joue ce rôle, en rechargeant la fenêtre existante avec un nouvel instantané.
 
 Rendu initial minimal à l'étape 1 (points reliés par un trait, sans fond de carte ni trait de côte) ; fond de carte, trait de côte, icônes IALA officielles et export SVG ajoutés aux étapes suivantes — comportement fonctionnel complet documenté dans `SPECIFICATIONS.md`, section « Fenêtre de visualisation cartographique ».
 

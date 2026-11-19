@@ -7,10 +7,12 @@ Description : Tests unitaires des modèles et du décodage SARA.
 Classes présentes :
 - ModelTests : tests des charges JSON et validations, et de l'option B
   (persistance locale du type IALA d'origine d'un point).
+- TestFloat32Upload : test_to_float32_is_exact_and_close,
+  test_upload_payload_is_float32_exact, test_local_save_keeps_original_precision.
 """
 
 __version__ = "0.2.0"
-__date__ = "2026-08-04"
+__date__ = "2026-11-19"
 
 import unittest
 
@@ -122,3 +124,48 @@ class ModelTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+class TestFloat32Upload:
+    """Vérifier l'arrondi 32 bits exigé par le décodage `as? Float` de SARA Navigation."""
+
+    @staticmethod
+    def _is_float32_exact(value: float) -> bool:
+        """Dire si un nombre 64 bits est exactement un nombre 32 bits."""
+        import struct
+        return struct.unpack("f", struct.pack("f", value))[0] == value
+
+    def test_to_float32_is_exact_and_close(self) -> None:
+        """`to_float32` renvoie un nombre exact en 32 bits, à moins de 0,5 m d'écart."""
+        from sara_route_manager.models import to_float32
+
+        value = 47.6821118
+        assert not self._is_float32_exact(value)  # le cas qui faisait planter l'app
+        rounded = to_float32(value)
+        assert self._is_float32_exact(rounded)
+        assert abs(rounded - value) * 111_000 < 0.5
+
+    def test_upload_payload_is_float32_exact(self) -> None:
+        """Tous les nombres envoyés vers Firebase sont exactement représentables en 32 bits."""
+        from sara_route_manager.models import SaraRoute, Waypoint
+
+        points = [
+            Waypoint.from_form({"name": "A2", "latitude": 47.6821118, "longitude": -3.4162025, "distance_threshold": 30}),
+            Waypoint.from_form({"name": "A4", "latitude": 47.6861984, "longitude": -3.4017751, "distance_threshold": 12.3}),
+        ]
+        payload = SaraRoute(name="Lorient", points=points).to_sara_dict("uid")
+        for point in payload["points"]:
+            for number in (point["distanceThreshold"], point["gpsPosition"]["latitude"], point["gpsPosition"]["longitude"]):
+                assert self._is_float32_exact(number)
+
+    def test_local_save_keeps_original_precision(self) -> None:
+        """La sauvegarde locale et l'export ne perdent aucune précision."""
+        from sara_route_manager.models import SaraRoute, Waypoint
+
+        points = [
+            Waypoint.from_form({"name": "A2", "latitude": 47.6821118, "longitude": -3.4162025}),
+            Waypoint.from_form({"name": "A4", "latitude": 47.6861984, "longitude": -3.4017751}),
+        ]
+        local = SaraRoute(name="Lorient", points=points).to_local_dict()
+        assert local["points"][0]["gpsPosition"]["latitude"] == 47.6821118

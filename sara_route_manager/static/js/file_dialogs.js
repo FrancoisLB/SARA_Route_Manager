@@ -8,8 +8,8 @@
  * Fonctions présentes : blobToBase64, saveBlobWithDialog, exportFileTypes.
  */
 
-const __version__ = "0.7.2.0";
-const __date__ = "2026-08-04";
+const __version__ = "0.9.4";
+const __date__ = "2026-11-19";
 
 /**
  * Convertir un Blob en Base64 sans préfixe data-URL.

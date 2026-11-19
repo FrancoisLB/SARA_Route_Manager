@@ -14,9 +14,65 @@ Sont hors périmètre : routage automatique, météo, marées, AIS et navigation
 
 L'application comporte cinq onglets : Compte, Bibliothèque, Créer une route, Configuration, À propos.
 
+### Précision numérique des envois vers SARA Navigation
+
+SARA Navigation décode latitude, longitude et distance de validation avec `as? Float` : un nombre JSON 64 bits non exactement représentable en 32 bits est refusé, le point perd sa position GPS et la visualisation de la route fait planter l'application. À l'envoi vers Firebase, ces trois valeurs sont donc arrondies à la précision 32 bits (`to_float32`, écart inférieur à 0,5 m), comme le fait l'application iOS elle-même. La sauvegarde locale et les exports gardent les valeurs d'origine.
+
+### Vocabulaire commun avec SARA Navigation
+
+Les noms des actions de partage reprennent ceux de l'application iPhone SARA Navigation (sources `SARANav.xcstrings` et `Localizable.xcstrings` de SARAFramework). SARA Régate, qui parle de « parcours » à « partager » / « départager », n'est pas prise en charge ; le vocabulaire de Navigation fait foi.
+
+| Clé iPhone | Libellé iPhone | Utilisation dans SARA Route Manager |
+| --- | --- | --- |
+| `upload` | Déposer en ligne | bouton de l'éditeur |
+| `download` | Télécharger | bouton de la Bibliothèque (routes en ligne) |
+| `my_routes` | Mes routes | filtre et origine des routes que l'on a mises en ligne |
+| `other_routes` | Autres routes | filtre et origine des routes des autres utilisateurs |
+| `upload_date` | Date de dépôt | date affichée dans la liste |
+| `delete` | Supprimer | bouton de la Bibliothèque |
+| `visualize` / `map` | Visualiser / carte | **« Voir la carte »** (éditeur et Bibliothèque) : sur iPhone, « Visualiser » ouvre la liste des points et le bouton « carte » bascule vers la carte ; ici la liste des points est dans l'éditeur et la carte est ouverte à part |
+| `firebase_success_upload` | La route a été mise en ligne avec succès ! | message après « Déposer en ligne » |
+| `firebase_name_exists_owner` | Une de vos routes mises en ligne a le même nom. Voulez-vous l'écraser ? | boîte « Attention », Oui / Non |
+| `firebase_name_exists` | Cette route ne peut pas être mise en ligne. Une route avec le même nom appartenant à un autre utilisateur existe déjà. | erreur de mise en ligne |
+| `firebase_warning_erase_route_local` | Une route avec le même nom existe déjà, voulez-vous l'écraser ? | confirmation de « Télécharger » |
+| `firebase_success_download_save_route` | La route a été téléchargée et sauvegardée avec succès. | message après « Télécharger » |
+| `firebase_success_delete_route` | La route a été supprimée avec succès. | message après suppression |
+
+Pour lever toute confusion avec « Sur ce PC », les deux filtres de routes en ligne portent la précision **« (en partage) »** (« Mes routes (en partage) », « Autres routes (en partage) ») : une route déposée en ligne est visible de tous les utilisateurs de SARA Navigation.
+
+#### SARA Navigation et SARA Régate
+
+SARA Route Manager cible **uniquement SARA Navigation** : il lit et écrit les routes de navigation (`/courses` dans Firebase) au format de cette application. SARA Régate est une application distincte, qui manipule des **parcours** de régate avec son propre vocabulaire (« parcours partagé », « partager », « départager ») et ses propres structures de données. Ces parcours ne sont pas pris en charge : ils ne sont ni importés, ni créés, ni déposés en ligne par l'outil. En cas de différence de vocabulaire, celui de SARA Navigation fait foi, et c'est pourquoi les termes « partager » ou « parcours » ne sont pas utilisés pour les noms de boutons.
+
+Les corrections d'orthographe de l'iPhone (« téléchargé » → « téléchargée », « Une de vos route » → « Une de vos routes ») sont appliquées. Les actions sans équivalent sur iPhone (Importer une route…, Exporter…, Enregistrer sur le PC, Actualiser la liste, filtre « Sur ce PC ») gardent leurs noms propres.
+
 ### Bibliothèque
 
-Trois listes compactes : routes personnelles, routes partagées, routes enregistrées sur le PC. Chaque liste est précédée d'un titre hiérarchique et dispose d'un groupe d'actions commun placé sous la liste. Ouverture directe d'une route par double-clic ou Entrée sur un élément de la liste.
+Depuis la version 0.8.0, la Bibliothèque présente **une liste unique** qui réunit les routes personnelles SARA, les routes partagées et les routes enregistrées sur le PC. Chaque ligne annonce son origine (« mes routes », « autres routes » ou « sur ce PC »).
+
+- **Filtre** : groupe de boutons radio « Afficher » (Toutes, Mes routes (en partage), Autres routes (en partage), Sur ce PC) et champ de recherche par nom, qui réduisent la liste au fil de la saisie. Un résumé « *Filtre* : n routes affichées sur m » est annoncé (`role="status"`), le nom du filtre en tête pour lever toute ambiguïté après un changement de bouton radio.
+- **Actions** (un seul jeu de boutons, portant sur la route sélectionnée) : **Éditer** (libellé **Consulter** pour une route de « Autres routes (en partage) »), **Voir la carte**, **Télécharger**, **Exporter…**, **Importer une route…**, **Supprimer**. Leur disponibilité dépend de l'origine de la route (tableau ci-dessous) et une phrase d'aide (`#route-action-hint`) rappelle ce qu'il est possible de faire.
+- **Exporter…** ouvre une boîte de dialogue (`alertdialog`, piège de focus, Échap pour annuler) avec le choix du format en boutons radio : JSON SARA (par défaut), GPX ou CSV, puis le dialogue natif « Enregistrer sous ».
+- **Importer une route…** ouvre le dialogue de choix de fichier (JSON, GPX, CSV, WPT). La route est importée **en entier** (nom, sens, points) et enregistrée sur le PC ; si une route locale porte déjà ce nom, une confirmation est demandée. Les clés non reconnues d'un fichier JSON (par exemple un bloc `metadonnees`) sont ignorées. Cet import est distinct de la source « Fichier » de l'éditeur, qui ne récupère que les points.
+- **Menu contextuel** (touche Menu, `Maj+F10` ou clic droit), adapté à l'origine de la route (voir tableau ci-dessous).
+
+| Action | Sur ce PC | Mes routes (en partage) | Autres routes (en partage) |
+| --- | --- | --- | --- |
+| Éditer / Consulter | Éditer | Éditer | Consulter |
+| Voir la carte | oui (2 points minimum) | oui (2 points minimum) | oui (2 points minimum) |
+| Télécharger | absent | actif seulement si aucune route locale de même nom ; sinon grisé et absent du menu | oui (confirmation d'écrasement si une copie locale existe) |
+| Renommer | oui | oui | absent |
+| Dupliquer | oui | oui | « Copier dans mes routes » |
+| Exporter… | oui | oui | oui |
+| Supprimer | oui | oui (retire la route de la liste en partage) | absent |
+
+- **Voir la carte** (0.9.3) : ouvre directement la fenêtre carte avec la trace de la route, sans passer par l'éditeur (jeton `/api/map/token`, fenêtre réutilisée si elle est déjà ouverte) et annonce le nom et le nombre de points. Il faut au moins 2 points, comme pour « Visualiser » dans SARA Navigation. La carte reste un complément visuel : le nom et le nombre de points sont aussi annoncés en texte.
+- **Format pré-coché** : celui du réglage « Format d'export par défaut » de la page Configuration.
+- **Actualisation** : un seul bouton « Actualiser la liste » (routes du PC, et routes SARA si connecté).
+- **Boîte de dialogue d'export commune** (`export_dialog.js`, gabarit `_export_dialog.html`) : la Bibliothèque et l'éditeur l'utilisent toutes deux, avec le même bouton **Exporter…** ; l'éditeur n'a plus de boutons d'export par format.
+- **Déposer en ligne** (éditeur) : comme dans SARA Navigation, une route d'un autre utilisateur de même nom bloque la mise en ligne (API : 409, `owned_by_other: true`, simple message d'erreur) ; l'une de ses propres routes en ligne de même nom propose l'écrasement (API : 409, `exists: true`, boîte « Attention » Oui / Non).
+- La suppression d'une route locale supprime son fichier JSON du dossier des routes, après confirmation.
+- Ouverture directe d'une route par double-clic ou Entrée sur un élément de la liste.
 
 ### Éditeur de routes
 
@@ -52,9 +108,9 @@ Les points disponibles peuvent être filtrés par type de balisage SHOM. Le filt
 
 ### Fenêtre de visualisation cartographique
 
-Fenêtre séparée (pas un panneau intégré à l'éditeur), ouverte par le bouton **« Visualiser la route »** de la zone « Analyse de la route », désactivé tant que la route contient moins de 2 points. C'est un **complément strictement visuel**, jamais un canal d'information exclusif : tout ce qu'elle montre reste disponible par ailleurs sous forme textuelle. La carte reste neutre pour NVDA (`role="img"`), sans jamais porter une information qui n'existerait qu'à cet endroit.
+Fenêtre séparée (pas un panneau intégré à l'éditeur), ouverte par le bouton **« Voir la carte »** de la zone « Analyse de la route », désactivé tant que la route contient moins de 2 points. C'est un **complément strictement visuel**, jamais un canal d'information exclusif : tout ce qu'elle montre reste disponible par ailleurs sous forme textuelle. La carte reste neutre pour NVDA (`role="img"`), sans jamais porter une information qui n'existerait qu'à cet endroit.
 
-**Instantané, pas de synchronisation en direct** : la carte affiche la route telle qu'elle était au moment du clic sur « Visualiser la route ». Un nouveau clic alors que la fenêtre est déjà ouverte la recharge avec un nouvel instantané, plutôt que d'en ouvrir une deuxième.
+**Instantané, pas de synchronisation en direct** : la carte affiche la route telle qu'elle était au moment du clic sur « Voir la carte ». Un nouveau clic alors que la fenêtre est déjà ouverte la recharge avec un nouvel instantané, plutôt que d'en ouvrir une deuxième.
 
 **Rendu** : Leaflet.js, vendu localement (pas de CDN, pas de dépendance réseau permanente). Fond plat (rectangle de couleur pour la mer, polygones pour les terres émergées), sans tuiles externes — cohérent avec SARA Navigation elle-même, qui utilise Apple MapKit en mode standard sans rendu nautique détaillé.
 

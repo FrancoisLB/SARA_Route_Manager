@@ -14,8 +14,8 @@ Fonctions présentes :
 - Aucune (appelle directement `sara_route_manager.__main__.main`).
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 from sara_route_manager.__main__ import main
 
