@@ -9,8 +9,8 @@ Classes présentes :
   test_numeric_folder_dialog_value_is_not_used_for_save.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 import unittest
 from pathlib import Path

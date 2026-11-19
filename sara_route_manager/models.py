@@ -6,13 +6,15 @@ Module : sara_route_manager.models
 Description : Modèles, décodage et validation des routes SARA Navigation.
 Classes présentes :
 - ValidationError : exception de validation.
+- to_float32 : arrondir un nombre à la précision « Float » de SARA Navigation.
 - Waypoint : to_sara_dict, to_local_dict, from_form, from_sara_dict, from_local_dict.
 - SaraRoute : validate, to_sara_dict, to_local_dict, from_sara_dict, from_local_dict.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
+import struct
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -21,6 +23,33 @@ from uuid import uuid4
 
 class ValidationError(ValueError):
     """Signaler une donnée de route invalide."""
+
+
+def to_float32(value: float) -> float:
+    """Arrondir un nombre à la précision d'un ``Float`` Swift (32 bits).
+
+    SARA Navigation décode les latitudes, longitudes et distances de
+    validation avec ``as? Float`` (voir ``GPSPosition.decode`` et
+    ``CoursePoint.decodePoint`` dans le code source de l'application). Or une
+    valeur JSON à 64 bits qui n'est pas *exactement* représentable en 32 bits
+    (par exemple 47.6821118) est refusée par ce transtypage : le point perd
+    alors sa position GPS, et la visualisation de la route fait planter
+    l'application. L'application iOS écrit elle-même des valeurs déjà
+    arrondies à 32 bits ; il faut donc faire de même.
+
+    Parameters
+    ----------
+    value : float
+        Nombre à arrondir.
+
+    Returns
+    -------
+    float
+        Le nombre 32 bits le plus proche, exprimé en 64 bits (donc
+        exactement représentable en ``Float``). L'écart est inférieur à
+        0,5 m pour une latitude ou une longitude de nos régions.
+    """
+    return struct.unpack("f", struct.pack("f", float(value)))[0]
 
 
 @dataclass(slots=True)
@@ -60,22 +89,31 @@ class Waypoint:
     # passage GPS (voir docs/SPECIFICATIONS.md, option B).
     object_code: str = ""
 
-    def to_sara_dict(self) -> dict[str, Any]:
+    def to_sara_dict(self, float32: bool = False) -> dict[str, Any]:
         """Convertir le point vers le dictionnaire attendu par SARA.
+
+        Parameters
+        ----------
+        float32 : bool, default=False
+            Si vrai, arrondit latitude, longitude et distance de validation
+            à la précision 32 bits de SARA Navigation (voir `to_float32`).
+            À utiliser pour tout envoi vers Firebase ; la sauvegarde locale
+            garde les valeurs d'origine.
 
         Returns
         -------
         dict[str, Any]
             Structure directement sérialisable en JSON Firebase.
         """
+        convert = to_float32 if float32 else float
         return {
             "id": self.id,
             "name": self.name.strip(),
-            "distanceThreshold": float(self.distance_threshold),
+            "distanceThreshold": convert(self.distance_threshold),
             "gpsPosition": {
                 "id": self.gps_id,
-                "latitude": float(self.latitude),
-                "longitude": float(self.longitude),
+                "latitude": convert(self.latitude),
+                "longitude": convert(self.longitude),
             },
         }
 
@@ -273,7 +311,8 @@ class SaraRoute:
             "id": self.id,
             "name": self.name,
             "status": 2,
-            "points": [point.to_sara_dict() for point in self.points],
+            # Valeurs 32 bits : SARA Navigation refuse les nombres 64 bits inexacts.
+            "points": [point.to_sara_dict(float32=True) for point in self.points],
             "reversed": bool(self.reversed),
             "owner": owner_uid,
             "lastUpdateTime": datetime.now().strftime("%Y-%m-%d_%H:%M:%S"),

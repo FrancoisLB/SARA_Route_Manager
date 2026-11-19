@@ -15,8 +15,8 @@
    * openTarget.
    */
 
-  const __version__ = "0.7.2.0";
-  const __date__ = "2026-08-04";
+  const __version__ = "0.9.4";
+  const __date__ = "2026-11-19";
 
   const statusMessage = document.getElementById("status-message");
 
@@ -169,11 +169,19 @@
    * cours, sur le même modèle que le bouton « Rétablir la configuration
    * par défaut » déjà présent.
    */
-  document.getElementById("import-configuration-button").addEventListener("click", async () => {
+  // Même présentation que l'import de route de la Bibliothèque : un seul
+  // bouton « Importer… » qui ouvre directement le choix du fichier.
+  document.getElementById("import-configuration-button").addEventListener("click", () => {
+    document.getElementById("import-configuration-file").click();
+  });
+  document.getElementById("import-configuration-file").addEventListener("change", async () => {
     const fileInput = document.getElementById("import-configuration-file");
     const file = fileInput.files[0];
-    if (!file) return announce("Sélectionnez d’abord un fichier de configuration.", true);
-    if (!window.confirm("Remplacer la configuration actuelle par celle du fichier sélectionné ?")) return;
+    if (!file) return announce("Import annulé.");
+    if (!window.confirm("Remplacer la configuration actuelle par celle du fichier sélectionné ?")) {
+      fileInput.value = "";
+      return announce("Import annulé : la configuration actuelle est conservée.");
+    }
     try {
       const formData = new FormData();
       formData.append("file", file);

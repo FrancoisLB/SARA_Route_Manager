@@ -1,0 +1,15 @@
+{# Boîte de dialogue d'export commune à la Bibliothèque et à l'éditeur (0.8.0). #}
+<div id="export-dialog" class="modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="export-dialog-title" aria-describedby="export-dialog-description" hidden>
+  <h2 id="export-dialog-title">Exporter la route</h2>
+  <p id="export-dialog-description">Choisissez le format du fichier, puis validez pour choisir son emplacement.</p>
+  <fieldset class="filter-group">
+    <legend>Format d’export</legend>
+    <label class="radio-choice"><input type="radio" name="export-format" value="json" checked> JSON SARA (réimportable dans cette application)</label>
+    <label class="radio-choice"><input type="radio" name="export-format" value="gpx"> GPX (autres logiciels de navigation)</label>
+    <label class="radio-choice"><input type="radio" name="export-format" value="csv"> CSV (tableur)</label>
+  </fieldset>
+  <div class="actions">
+    <button id="export-confirm" type="button">Exporter</button>
+    <button id="export-cancel" type="button" class="secondary">Annuler</button>
+  </div>
+</div>

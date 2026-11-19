@@ -19,6 +19,14 @@
 - touche Menu ou `Maj+F10` : menu contextuel ;
 - Échap : fermer le menu contextuel ou annuler.
 
+## Bibliothèque
+
+- Flèches haut/bas dans le groupe « Afficher » : changer le filtre (Toutes, Mes routes (en partage), Autres routes (en partage), Sur ce PC) ;
+- Entrée dans la liste ou double-clic : éditer (ou consulter) la route sélectionnée ;
+- `F2` : renommer ; `Suppr` : supprimer (route SARA ou locale) ;
+- touche Menu ou `Maj+F10` : menu contextuel adapté à l’origine de la route (Éditer ou Consulter, Voir la carte, Télécharger, Renommer, Dupliquer ou Copier dans mes routes, Exporter…, Supprimer) ;
+- dans la boîte « Exporter la route » : flèches pour choisir le format, `Tab` reste dans la boîte, Échap annule.
+
 ## Composer une route
 
 - `Alt+Flèche droite` : ajouter le point sélectionné à la route ;

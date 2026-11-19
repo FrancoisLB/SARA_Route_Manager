@@ -16,8 +16,8 @@ Classes présentes :
   test_about_js_wires_license_buttons, test_about_page_has_disclaimer_section.
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 from pathlib import Path
 
@@ -109,3 +109,20 @@ class TestLicense:
         )
         assert '<h2 id="disclaimer-heading" tabindex="-1">Avertissement</h2>' in about
         assert "aucune réclamation" in about.lower()
+
+    def test_about_page_clarifies_sara_regate_not_supported(self) -> None:
+        """Vérifier que la page À propos distingue explicitement SARA Navigation de SARA Régate.
+
+        Signalé après un cas réel d'utilisateur (Laurent) dont les routes
+        personnelles n'apparaissaient pas dans SARA Route Manager — cause
+        identifiée : ce sont deux applications iOS distinctes d'Orion Brest,
+        avec des comptes et des bases de données Firebase entièrement
+        séparés (confirmé par comparaison des fichiers GoogleService-Info.plist
+        des deux dépôts sources), malgré la proximité de leurs noms. Le texte
+        se contentait auparavant de toujours nommer « SARA Navigation »
+        sans jamais exclure explicitement SARA Régate — insuffisant pour
+        un utilisateur ne connaissant pas la distinction entre les deux apps.
+        """
+        about = (ROOT / "sara_route_manager/templates/about.html").read_text(encoding="utf-8")
+        assert "SARA Régate" in about
+        assert "ne sont pas prises en charge" in about

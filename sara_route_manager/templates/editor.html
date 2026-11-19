@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Créer une route — SARA Route Manager{% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/unified_editor.js', v='0.7.2.0') }}" defer></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/unified_editor.js', v='0.9.4') }}" defer></script>{% endblock %}
 {% block content %}
 <h1 id="editor-title" tabindex="-1">Créer une route</h1>
 <p class="lead">Choisissez une source de points, ajoutez les points utiles à la route, puis modifiez leur ordre.</p>
@@ -75,9 +75,20 @@
 <p id="total-distance">Distance totale : 0,00 milles nautiques</p>
 <p id="segment-count">Nombre de segments : 0</p>
 </div>
-<div class="actions"><button id="export-segments-csv" type="button" class="secondary" disabled>Exporter les segments en CSV</button><button id="visualize-route" type="button" class="secondary" disabled>Visualiser la route</button></div>
+<div class="actions"><button id="export-segments-csv" type="button" class="secondary" disabled>Exporter les segments en CSV</button><button id="visualize-route" type="button" class="secondary" disabled>Voir la carte</button></div>
 </section>
-<section class="f6-zone" data-zone-name="Enregistrement et export" aria-labelledby="save-heading"><h2 id="save-heading" tabindex="-1">Enregistrer et exporter</h2><div class="actions"><button id="save-route" type="button">Enregistrer sur le PC</button><button id="upload-route" type="button">Envoyer vers SARA</button><button id="export-gpx" type="button" class="secondary">Exporter GPX</button><button id="export-csv" type="button" class="secondary">Exporter CSV</button><button id="export-json" type="button" class="secondary">Exporter JSON</button></div></section>
+<section class="f6-zone" data-zone-name="Enregistrement et export" aria-labelledby="save-heading"><h2 id="save-heading" tabindex="-1">Enregistrer et exporter</h2><p class="help">« Déposer en ligne » met la route en ligne, comme dans SARA Navigation : elle apparaît dans « Autres routes (en partage) » pour tous les autres utilisateurs, qui peuvent la télécharger. « Enregistrer sur le PC » la garde privée.</p><div class="actions"><button id="save-route" type="button">Enregistrer sur le PC</button><button id="upload-route" type="button">Déposer en ligne</button><button id="export-route" type="button" class="secondary">Exporter…</button></div></section>
+
+{% include "_export_dialog.html" %}
+
+<div id="replace-route-dialog" class="modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="replace-route-dialog-title" aria-describedby="replace-route-dialog-description" hidden>
+  <h2 id="replace-route-dialog-title">Attention</h2>
+  <p id="replace-route-dialog-description">Une de vos routes mises en ligne a le même nom. Voulez-vous l’écraser ?</p>
+  <div class="actions">
+    <button id="replace-route-confirm" type="button">Oui</button>
+    <button id="replace-route-cancel" type="button" class="secondary">Non</button>
+  </div>
+</div>
 <section aria-labelledby="messages-heading">
 <h2 id="messages-heading">Messages</h2>
 <label for="status-message" class="visually-hidden">Journal des messages</label>

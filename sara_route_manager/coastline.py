@@ -27,8 +27,8 @@ Fonctions présentes :
 - fetch_coastline
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 import json
 from typing import Any

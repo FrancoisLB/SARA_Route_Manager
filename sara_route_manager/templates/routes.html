@@ -1,55 +1,47 @@
 {% extends "base.html" %}
 {% block title %}Bibliothèque des routes — SARA Route Manager{% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/routes.js', v='0.7.2.0') }}" defer></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/routes.js', v='0.9.4') }}" defer></script>{% endblock %}
 {% block content %}
 <h1 id="library-title" tabindex="-1">Bibliothèque des routes</h1>
-<p class="lead">Consultez vos routes SARA, les routes partagées et les routes enregistrées sur ce PC.</p>
+<p class="lead">Une seule liste réunit vos routes en ligne (« Mes routes (en partage) »), les routes des autres utilisateurs (« Autres routes (en partage) ») et les routes enregistrées sur ce PC. Les noms des actions sont ceux de SARA Navigation : « Télécharger » enregistre une route en ligne sur ce PC, et « Déposer en ligne » (dans l’éditeur) met une route en ligne, où tous les utilisateurs de SARA Navigation peuvent la télécharger. Pour dupliquer ou renommer une route, ouvrez le menu contextuel avec la touche Applications ou Maj+F10.</p>
 <p id="account-state" class="connection-panel" role="status">Vérification du compte…</p>
-<div class="actions page-actions" aria-label="Actions de la bibliothèque">
-  <button id="refresh-remote-button" type="button">Actualiser les routes SARA</button>
-  <button id="refresh-local-button" type="button" class="secondary">Actualiser les routes locales</button>
-</div>
 
-<section class="f6-zone" data-zone-name="Routes personnelles" aria-labelledby="my-routes-heading">
-  <h2 id="my-routes-heading" tabindex="-1">Routes personnelles</h2>
-  <p id="my-routes-summary" class="list-summary">Aucune récupération effectuée.</p>
-  <select id="my-routes-list" class="library-route-list" size="7" aria-labelledby="my-routes-heading my-routes-summary"></select>
-  <div class="actions library-actions">
-    <button id="my-open" type="button">Modifier</button>
-    <button id="my-duplicate" type="button" class="secondary">Dupliquer</button>
-    <button id="my-export-gpx" type="button" class="secondary">Exporter GPX</button>
-    <button id="my-export-csv" type="button" class="secondary">Exporter CSV</button>
-    <button id="my-export-json" type="button" class="secondary">Exporter JSON</button>
-    <button id="my-delete" type="button" class="danger">Supprimer</button>
+<section class="f6-zone" data-zone-name="Filtres" aria-labelledby="filters-heading">
+  <h2 id="filters-heading" tabindex="-1">Filtrer la liste</h2>
+  <fieldset class="filter-group">
+    <legend>Afficher</legend>
+    <label class="radio-choice"><input type="radio" name="route-filter" value="all" checked> Toutes</label>
+    <label class="radio-choice"><input type="radio" name="route-filter" value="mine"> Mes routes (en partage)</label>
+    <label class="radio-choice"><input type="radio" name="route-filter" value="community"> Autres routes (en partage)</label>
+    <label class="radio-choice"><input type="radio" name="route-filter" value="local"> Sur ce PC</label>
+  </fieldset>
+  <div class="field">
+    <label for="route-search">Rechercher par nom</label>
+    <input id="route-search" type="search" autocomplete="off" aria-describedby="route-search-help">
+    <p id="route-search-help" class="help">La liste se réduit au fur et à mesure de la saisie.</p>
   </div>
 </section>
 
-<section class="f6-zone" data-zone-name="Routes partagées" aria-labelledby="community-routes-heading">
-  <h2 id="community-routes-heading" tabindex="-1">Routes partagées</h2>
-  <p id="community-routes-summary" class="list-summary">Aucune récupération effectuée.</p>
-  <select id="community-routes-list" class="library-route-list" size="7" aria-labelledby="community-routes-heading community-routes-summary"></select>
-  <div class="actions library-actions">
-    <button id="community-open" type="button">Consulter</button>
-    <button id="community-copy" type="button" class="secondary">Copier dans mes routes</button>
-    <button id="community-export-gpx" type="button" class="secondary">Exporter GPX</button>
-    <button id="community-export-csv" type="button" class="secondary">Exporter CSV</button>
-    <button id="community-export-json" type="button" class="secondary">Exporter JSON</button>
+<section class="f6-zone" data-zone-name="Routes" aria-labelledby="routes-heading">
+  <h2 id="routes-heading" tabindex="-1">Routes</h2>
+  <p id="routes-summary" class="list-summary" role="status">Aucune récupération effectuée.</p>
+  <select id="routes-list" class="library-route-list" size="10" aria-labelledby="routes-heading routes-summary"></select>
+  <div class="actions library-actions" aria-label="Actions sur la route sélectionnée">
+    <button id="route-open" type="button">Éditer</button>
+    <button id="route-view" type="button" class="secondary">Voir la carte</button>
+    <button id="route-download" type="button" class="secondary">Télécharger</button>
+    <button id="route-export" type="button" class="secondary">Exporter…</button>
+    <button id="route-import" type="button" class="secondary">Importer une route…</button>
+    <button id="route-refresh" type="button" class="secondary">Actualiser la liste</button>
+    <button id="route-delete" type="button" class="danger">Supprimer</button>
   </div>
-</section>
-
-<section class="f6-zone" data-zone-name="Routes locales" aria-labelledby="local-routes-heading">
-  <h2 id="local-routes-heading" tabindex="-1">Routes enregistrées sur ce PC</h2>
-  <p id="local-routes-summary" class="list-summary">Aucune récupération effectuée.</p>
-  <select id="local-routes-list" class="library-route-list" size="7" aria-labelledby="local-routes-heading local-routes-summary"></select>
-  <div class="actions library-actions">
-    <button id="local-open" type="button">Ouvrir</button>
-    <button id="local-export-gpx" type="button" class="secondary">Exporter GPX</button>
-    <button id="local-export-csv" type="button" class="secondary">Exporter CSV</button>
-    <button id="local-export-json" type="button" class="secondary">Exporter JSON</button>
-  </div>
+  <p id="route-action-hint" class="help">Sélectionnez une route pour voir les actions possibles.</p>
+  <input id="route-import-file" type="file" accept=".json,.gpx,.csv,.wpt" class="visually-hidden" tabindex="-1" aria-hidden="true">
 </section>
 
 <div id="route-context-menu" class="context-menu" role="menu" aria-label="Actions pour la route sélectionnée" hidden></div>
+
+{% include "_export_dialog.html" %}
 
 <section aria-labelledby="messages-heading">
   <h2 id="messages-heading">Messages</h2>

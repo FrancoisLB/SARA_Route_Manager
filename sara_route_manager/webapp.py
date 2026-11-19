@@ -12,8 +12,8 @@ Fonctions principales :
 - create_app
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -35,7 +35,12 @@ from .coastline import CoastlineError, fetch_coastline
 from .configuration import AppConfiguration
 from . import __version__ as PACKAGE_VERSION
 from .credentials import CredentialStore
-from .firebase_client import FirebaseSession, SaraConnectionError
+from .firebase_client import (
+    FirebaseSession,
+    SaraConnectionError,
+    SaraRouteExistsError,
+    SaraRouteOwnedByOtherError,
+)
 from .models import SaraRoute, ValidationError, Waypoint
 from .storage import LocalRouteStorage
 from .route_formats import RouteFormatError, export_route, import_route
@@ -549,6 +554,25 @@ def create_app() -> Flask:
 
 
 
+    @app.post("/api/routes/local/exists")
+    def local_route_exists():
+        """Indiquer si l'enregistrement d'une route écraserait un fichier local."""
+        data = request.get_json(silent=True) or {}
+        return jsonify({"ok": True, "exists": storage.exists(str(data.get("name", "")))})
+
+    @app.post("/api/routes/local/delete")
+    def delete_local_route():
+        """Supprimer une route enregistrée sur ce PC."""
+        data = request.get_json(silent=True) or {}
+        filename = str(data.get("file", "")).strip()
+        if not filename:
+            return jsonify({"ok": False, "message": "La route locale à supprimer n’est pas indiquée."}), 400
+        try:
+            storage.delete(filename)
+            return jsonify({"ok": True, "message": "La route a été supprimée avec succès."})
+        except OSError as exc:
+            return jsonify({"ok": False, "message": f"Suppression impossible : {exc}"}), 400
+
     @app.post("/api/shom/search")
     def search_shom_web():
         """Récupérer les marques depuis le serveur WFS utilisé par SARA Navigation."""
@@ -622,8 +646,15 @@ def create_app() -> Flask:
             route = build_route_from_json(data)
             with state.lock:
                 state.firebase.upload_route(route, overwrite=bool(data.get("overwrite", False)))
-            logger.info("Route envoyée vers SARA : %s", route.name)
-            return jsonify({"ok": True, "message": "Route envoyée vers SARA Navigation."})
+            logger.info("Route mise en ligne : %s", route.name)
+            # Même formulation que SARA Navigation (« Déposer en ligne »).
+            return jsonify({"ok": True, "message": "La route a été mise en ligne avec succès !"})
+        except SaraRouteExistsError as exc:
+            # 409 + `exists` : l'interface propose alors d'écraser sa propre route.
+            return jsonify({"ok": False, "exists": True, "message": str(exc)}), 409
+        except SaraRouteOwnedByOtherError as exc:
+            # 409 sans `exists` : aucune proposition d'écrasement, simple message d'erreur.
+            return jsonify({"ok": False, "exists": False, "owned_by_other": True, "message": str(exc)}), 409
         except (ValidationError, SaraConnectionError) as exc:
             return jsonify({"ok": False, "message": str(exc)}), 400
 
@@ -636,7 +667,7 @@ def create_app() -> Flask:
         try:
             with state.lock:
                 state.firebase.delete_route(remote_key)
-            return jsonify({"ok": True, "message": f"Route « {remote_key} » supprimée du compte SARA."})
+            return jsonify({"ok": True, "message": "La route a été supprimée avec succès."})
         except SaraConnectionError as exc:
             return jsonify({"ok": False, "message": str(exc)}), 400
 

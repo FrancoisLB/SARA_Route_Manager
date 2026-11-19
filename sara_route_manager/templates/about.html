@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}À propos — SARA Route Manager{% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/about.js', v='0.7.2.0') }}" defer></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/about.js', v='0.9.4') }}" defer></script>{% endblock %}
 {% block content %}
 <h1 id="about-title" tabindex="-1">À propos de SARA Route Manager</h1>
 <section class="f6-zone" data-zone-name="Informations générales" aria-labelledby="about-general-heading">
@@ -17,6 +17,7 @@
 <section class="f6-zone" data-zone-name="Périmètre" aria-labelledby="scope-heading">
   <h2 id="scope-heading" tabindex="-1">Périmètre</h2>
   <p>SARA Route Manager est un logiciel Windows indépendant de préparation de routes. Il ne remplace pas SARA Navigation et n’assure aucune navigation GPS en temps réel.</p>
+  <p>SARA Route Manager fonctionne avec les comptes de l’application <strong>SARA Navigation</strong>. Les routes créées ou partagées depuis l’application <strong>SARA Régate</strong> ne sont pas prises en charge : ce sont deux applications distinctes de l’association Orion Brest, avec des comptes et des bases de données séparés, malgré la proximité de leurs noms.</p>
 </section>
 <section class="f6-zone" data-zone-name="Licence" aria-labelledby="license-heading">
   <h2 id="license-heading" tabindex="-1">Licence</h2>
@@ -57,6 +58,6 @@
     <button id="open-log-file" type="button" class="secondary">Ouvrir le journal</button>
     <a class="button-link secondary" href="/configuration">Ouvrir la page Configuration</a>
   </div>
-  <div id="status-message" class="status" role="status" aria-live="polite">Page prête.</div>
 </section>
+<section aria-labelledby="messages-heading"><h2 id="messages-heading">Messages</h2><div id="status-message" class="status" role="status" aria-live="polite">Page prête.</div></section>
 {% endblock %}

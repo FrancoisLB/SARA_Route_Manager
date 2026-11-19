@@ -1,5 +1,90 @@
 # Journal des modifications
 
+## 0.9.4 — repères NVDA de la page de départ
+
+- au démarrage, NVDA+F7 ne montrait aucun repère sur la page de départ (Compte) tant qu'on ne cliquait pas sur la navigation, alors que les repères existent dans le HTML de toutes les pages ; la première page est maintenant rechargée une seule fois, une seconde après son chargement, si l'utilisateur n'a pas déjà navigué (`install_first_page_refresh`) ;
+- correctif non vérifiable hors du PC (NVDA et WebView2 absents de l'environnement de test) : à confirmer par NVDA+F7 au lancement ;
+- tests ajoutés ; version portée à 0.9.4.
+
+## 0.9.3 — « Éditer » et « Voir la carte »
+
+- dans la Bibliothèque, le bouton **Ouvrir** devient **Éditer** (il reste **Consulter** pour la route d'un autre utilisateur) ;
+- le bouton **Visualiser** de la 0.9.2, qui faisait presque la même chose qu'Ouvrir, devient **Voir la carte** : il ouvre directement la fenêtre carte avec la trace de la route, sans passer par l'éditeur (2 points minimum), et annonce le nom et le nombre de points ; le mode « Visualiser » de l'éditeur est retiré ;
+- dans l'éditeur, le bouton « Visualiser la route » est renommé **Voir la carte** par cohérence ;
+- menu contextuel, phrase d'aide, documentation et tests alignés ; version portée à 0.9.3.
+
+## 0.9.2 — actions de la Bibliothèque adaptées à l'origine de la route
+
+- nouveau bouton **Visualiser** (et entrée du menu contextuel) : ouvre l'éditeur sur la liste des points, titre « Visualiser : nom », focus sur les points et annonce de leur nombre ;
+- **Télécharger** grisé (et absent du menu) pour une de vos routes en partage déjà enregistrée sur ce PC ; toujours proposé pour la route d'un autre utilisateur, avec confirmation d'écrasement ;
+- menu contextuel adapté aux trois origines (Sur ce PC, Mes routes (en partage), Autres routes (en partage)) ;
+- phrase d'aide sous les boutons décrivant les actions possibles pour la route sélectionnée ;
+- texte d'aide de l'éditeur aligné sur « Autres routes (en partage) » ;
+- documentation : tableau des actions par origine, section « SARA Navigation et SARA Régate » ; commentaire expliquant que la clé Web Firebase n'est pas un secret ;
+- version portée à 0.9.2.
+
+## 0.9.1 — libellés « en partage » dans la Bibliothèque
+
+- à la suite d'une copie d'écran où « Mes routes » pouvait se lire comme « mes routes sur ce PC », les deux filtres de routes en ligne deviennent **Mes routes (en partage)** et **Autres routes (en partage)** ; les lignes de la liste annoncent « mes routes en partage » ou « autres routes en partage » ; le texte d'introduction explique que toute route déposée en ligne est visible de tous les utilisateurs ;
+- le nom de base reste celui de SARA Navigation (`my_routes`, `other_routes`), complété par la précision « (en partage) » ; « Sur ce PC » est inchangé ;
+- documentation et tests mis à jour ; version portée à 0.9.1.
+
+## 0.9.0 — vocabulaire de partage aligné sur SARA Navigation, nouveau bouton « Télécharger »
+
+- **demande** : que les boutons de partage des routes portent les mêmes noms que dans l'application iPhone SARA Navigation. Les libellés ont été relevés dans les sources de SARA Navigation, SARAFramework (code commun) et SARA Régate ; Régate parle de « parcours » à « partager », Navigation de « mise en ligne » et de « téléchargement » : le vocabulaire de Navigation est retenu ;
+- **éditeur** : « Envoyer vers SARA » devient **Déposer en ligne** ; le message de succès devient « La route a été mise en ligne avec succès ! » ;
+- **Bibliothèque** : filtres et origines **Mes routes** et **Autres routes** (au lieu de « Mes routes SARA (partagées) » et « Routes des autres utilisateurs ») ; date affichée comme **date de dépôt** ; nouveau bouton **Télécharger** (routes en ligne), qui enregistre la route sur le PC avec la confirmation d'écrasement de l'iPhone ; suppression confirmée par « Voulez-vous supprimer la route … ? » et annoncée par « La route a été supprimée avec succès. » ;
+- **même nom déjà pris** : comme sur iPhone, deux cas sont distingués. Une route **d'un autre utilisateur** bloque la mise en ligne (« Cette route ne peut pas être mise en ligne. Une route avec le même nom appartenant à un autre utilisateur existe déjà. ») ; l'une de **ses propres** routes en ligne propose l'écrasement dans une boîte « Attention » à réponses **Oui / Non** (nouvelle exception `SaraRouteOwnedByOtherError`, `FirebaseSession.existing_route_owner`) ;
+- documentation : tableau de correspondance des libellés dans `docs/SPECIFICATIONS.md` ; guide utilisateur et raccourcis mis à jour ;
+- 9 tests ajoutés ; version portée à 0.9.0.
+
+## 0.8.3 — correctif : SARA Navigation plantait à la visualisation d'une route envoyée depuis le PC
+
+- **symptôme** : une route envoyée vers SARA depuis SARA Route Manager s'affichait dans la liste et s'importait sur iPhone et tablette, mais « Visualiser » faisait planter SARA Navigation, chez l'expéditeur comme chez les destinataires ;
+- **cause identifiée dans le code source de SARA Navigation** : l'application décode latitude, longitude et distance de validation avec `as? Float` (`GPSPosition.decode`, `CoursePoint.decodePoint`). Un nombre JSON à 64 bits qui n'est pas exactement représentable en 32 bits (47.6821118, par exemple) est refusé par ce transtypage : le point est créé **sans position GPS**. La route reste listable, mais la visualisation travaille alors sur zéro point géolocalisé (`numberOfSections` valait −1, polyligne vide), d'où le plantage. L'application iOS n'est pas concernée car elle écrit des valeurs déjà arrondies à 32 bits ;
+- **correction** : à l'envoi vers Firebase, latitude, longitude et distance de validation sont arrondies à la précision 32 bits (`to_float32`, écart inférieur à 0,5 m). La sauvegarde locale et les exports gardent les valeurs d'origine ;
+- **hypothèse non vérifiée sur iPhone** : le raisonnement vient de la lecture du code Swift, sans pouvoir exécuter l'application. Il faut renvoyer la route (en remplaçant l'ancienne) puis tester « Visualiser » ;
+- **routes déjà envoyées** : celles qui ont été envoyées avant 0.8.3 restent concernées tant qu'elles ne sont pas renvoyées avec « Envoyer vers SARA » (remplacement proposé) ;
+- 3 tests ajoutés ; version portée à 0.8.3.
+
+## 0.8.2 — homogénéisation des onglets (audit Compte, Bibliothèque, Éditeur, Configuration, À propos)
+
+- **réglage « Format d'export par défaut » enfin utilisé** : il était enregistré mais n'agissait sur rien ; la boîte de dialogue d'export pré-coche désormais ce format (Bibliothèque comme éditeur) ;
+- **réglage « Demander une confirmation avant d'écraser un fichier »** : respecté par l'import de route de la Bibliothèque (il n'était pas branché non plus) ;
+- **Bibliothèque** : les deux boutons d'actualisation sont remplacés par un seul **Actualiser la liste** (routes du PC, et routes SARA si le compte est connecté) ;
+- **Configuration** : l'import d'une configuration suit le modèle de l'import de route — un seul bouton **Importer la configuration…** qui ouvre le choix du fichier — au lieu d'un champ de fichier suivi d'un second bouton ; règle de libellé commune : un bouton qui ouvre un dialogue ou un choix se termine par « … » (Exporter…, Importer…, Choisir le répertoire…) ;
+- **accessibilité** : l'option « Milles nautiques (NM) » de la Configuration est devenue « Milles nautiques » (NVDA lit « NM » comme « nanomètre », règle déjà appliquée ailleurs) ;
+- **À propos** : zone **Messages** standard, comme les autres onglets ;
+- **Éditeur** : une aide précise que « Envoyer vers SARA » partage la route avec tous les utilisateurs, alors que « Enregistrer sur le PC » la garde privée ;
+- tests ajoutés ; version portée à 0.8.2.
+
+## 0.8.1 — homogénéisation : export unique, envoi avec remplacement, filtre plus clair
+
+- **retours d'usage sur 0.8.0** : après un premier essai réel (import d'un chenal de la rade de Lorient, puis envoi vers SARA), trois incohérences ont été signalées et corrigées ;
+- **export homogène** : l'éditeur n'a plus trois boutons GPX/CSV/JSON ; il utilise le même bouton **Exporter…** que la Bibliothèque, via une boîte de dialogue commune (`export_dialog.js`, `_export_dialog.html`) ;
+- **envoi vers SARA** : un second envoi du même nom échouait sans issue (« existe déjà »). Le serveur répond désormais 409 avec `exists: true` (`SaraRouteExistsError`) et l'éditeur propose de **remplacer** la route après confirmation ;
+- **routes « partagées »** : envoyer une route la partage automatiquement, mais elle ne figure pas dans la liste « partagées » de son auteur (celle-ci ne contient que les routes des autres, c'est le comportement de SARA Navigation). Pour lever la confusion, les filtres s'appellent désormais « Mes routes SARA (partagées) » et « Routes des autres utilisateurs », et le texte de la page l'explique ;
+- **filtre radio** : le résumé annonce le nom du filtre en premier (« Sur ce PC : 1 route affichée sur 4 ») pour qu'on sache à quel filtre correspond le nombre après un changement de bouton ;
+- tests ajoutés ; version portée à 0.8.1 partout.
+
+## 0.8.0 — Bibliothèque simplifiée : liste unique, filtre, export à choix de format, import de route complète
+
+- **liste unique** : les trois listes (routes personnelles, partagées, enregistrées sur ce PC) sont remplacées par une seule liste triée par nom ; chaque ligne annonce son origine ;
+- **filtre à boutons radio** (Toutes, Mes routes SARA, Routes partagées, Sur ce PC) et **recherche par nom** au fil de la saisie ; résumé « n routes affichées sur m » annoncé ;
+- **un seul jeu de boutons** : Ouvrir (Consulter pour une route partagée), Exporter…, Importer une route…, Supprimer ; Dupliquer, Copier et Renommer restent au menu contextuel (touche Menu ou Maj+F10) ;
+- **Exporter…** : une boîte de dialogue (`alertdialog`) remplace les trois boutons GPX/CSV/JSON — choix du format en boutons radio, JSON SARA par défaut ;
+- **Importer une route…** : nouvelle fonction qui importe un fichier JSON, GPX, CSV ou WPT comme route **complète** (nom, sens, points) et l'enregistre sur le PC ; confirmation si une route locale porte déjà le même nom ; les clés non reconnues (bloc `metadonnees`) sont ignorées, par décision explicite ;
+- **suppression d'une route locale** (nouvelle) : endpoints `/api/routes/local/delete` et `/api/routes/local/exists`, `LocalRouteStorage.delete`/`exists` (confinés au dossier des routes) ;
+- la source « Fichier » de l'éditeur reste inchangée (points seulement) ;
+- documentation (SPECIFICATIONS, USER_GUIDE, RACCOURCIS_CLAVIER) et tests mis à jour ; version portée à 0.8.0 partout (dont `run_sara_route_manager.py` et `route_math.js`, restés en retard).
+
+## 0.7.2.1 — clarification : SARA Route Manager fonctionne avec SARA Navigation, pas SARA Régate
+
+- **confusion réelle d'un utilisateur résolue à la source** : des routes personnelles absentes malgré une synchronisation apparemment fonctionnelle ont mené à identifier que SARA Navigation et SARA Régate — deux applications iOS distinctes de l'association Orion Brest, aux noms proches — utilisent des projets Firebase entièrement séparés (confirmé par comparaison directe des fichiers `GoogleService-Info.plist` des deux dépôts sources : `sara-nav-release` contre `sara-regate-prod`), avec des comptes utilisateur non partagés entre les deux ;
+- la page À propos nommait déjà systématiquement « SARA Navigation » (jamais un « SARA » générique), mais sans jamais exclure explicitement SARA Régate — insuffisant pour un utilisateur ne connaissant pas la distinction entre les deux applications ;
+- **section « Périmètre » complétée** : précise désormais explicitement que les routes créées ou partagées depuis SARA Régate ne sont pas prises en charge, et pourquoi (comptes et bases de données séparés) ;
+- 1 test dédié ajouté.
+
 ## 0.7.2.0 (suite) — clarification sur la distribution de l'exécutable
 
 - **documentation complétée**, repérée comme manquante après question de l'utilisateur : `docs/SPECIFICATIONS.md` explique désormais que `dist\SARA_Route_Manager.exe` est exclu du dépôt Git (résultat de construction, pas du code source) et détaille les deux façons de le rendre disponible (le reconstruire soi-même, ou l'attacher manuellement à une *Release* GitHub) ;

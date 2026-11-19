@@ -11,14 +11,14 @@
    * Description : Page « Créer une route » — composition d'une route par
    * double liste (points disponibles / points de la route), import depuis
    * SHOM, fichier ou saisie manuelle, réorganisation, analyse des segments,
-   * enregistrement local, envoi vers SARA et export GPX/CSV/JSON.
+   * enregistrement local, mise en ligne (« Déposer en ligne ») et export (GPX/CSV/JSON au choix).
    * Fonctions présentes (principales) : announce, copyStatusMessage,
    * activateRoute, transfer, move, render, buildRouteSegments,
    * exportSegmentsCsv, exportFormat, loadLocals, loadLocalInto, initialize.
    */
 
-  const __version__ = "0.7.2.0";
-  const __date__ = "2026-08-04";
+  const __version__ = "0.9.4";
+  const __date__ = "2026-11-19";
 
   let available = [];
   let routePoints = [];
@@ -874,7 +874,7 @@
         // navigateur, pour un comportement équivalent au mode pywebview.
         window.open(url, "sara_map_window");
       }
-      announce("Fenêtre de visualisation ouverte.");
+      announce("Carte ouverte.");
     } catch (error) {
       announce(error.message, true);
     }
@@ -908,12 +908,71 @@
 
   $("save-route").onclick = saveRouteLocally;
 
+  /**
+   * Demander, dans une boîte de dialogue de la page, s'il faut écraser la route en ligne existante (Oui / Non, comme SARA Navigation).
+   *
+   * Même comportement que « Modifications non enregistrées » : focus sur le
+   * premier bouton, piège de focus (Tab, Maj+Tab), Échap = Annuler. Aucune
+   * invite native du navigateur n'est utilisée.
+   *
+   * @returns {Promise<boolean>} Vrai si l'utilisateur confirme le remplacement.
+   */
+  function confirmReplaceRoute() {
+    const dialog = $("replace-route-dialog");
+    return new Promise(resolve => {
+      function finish(result) {
+        dialog.hidden = true;
+        dialog.removeEventListener("keydown", onKeydown);
+        $("replace-route-confirm").onclick = null;
+        $("replace-route-cancel").onclick = null;
+        resolve(result);
+      }
+      function onKeydown(event) {
+        const buttons = [...dialog.querySelectorAll("button")];
+        const currentIndex = buttons.indexOf(document.activeElement);
+        if (event.key === "Escape") {
+          event.preventDefault();
+          finish(false);
+        } else if (event.key === "Tab") {
+          if (event.shiftKey && currentIndex <= 0) { event.preventDefault(); buttons.at(-1).focus(); }
+          else if (!event.shiftKey && currentIndex === buttons.length - 1) { event.preventDefault(); buttons[0].focus(); }
+        }
+      }
+      dialog.addEventListener("keydown", onKeydown);
+      $("replace-route-confirm").onclick = () => finish(true);
+      $("replace-route-cancel").onclick = () => finish(false);
+      dialog.hidden = false;
+      $("replace-route-confirm").focus();
+    });
+  }
+
+  /**
+   * Mettre la route en ligne (« Déposer en ligne »), en proposant d'écraser sa propre route du même nom.
+   *
+   * Le serveur répond 409 avec `exists: true` quand le nom est déjà pris :
+   * l'utilisateur peut alors confirmer le remplacement (mise à jour de sa
+   * propre route) plutôt que de rester bloqué par le message d'erreur.
+   */
   $("upload-route").onclick = async () => {
     if (!validateActiveRoute()) return;
-    try {
-      const data = await json("/api/routes/upload", {
-        method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload())
+    async function send(overwrite) {
+      const response = await fetch("/api/routes/upload", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({...payload(), overwrite})
       });
+      return {response, data: await response.json()};
+    }
+    try {
+      let {response, data} = await send(false);
+      if (response.status === 409 && data.exists) {
+        if (!await confirmReplaceRoute()) {
+          announce("Mise en ligne annulée : la route existante est conservée.");
+          $("upload-route").focus();
+          return;
+        }
+        ({response, data} = await send(true));
+      }
+      if (!response.ok || data.ok === false) throw new Error(data.message || "Mise en ligne impossible.");
       routeDirty = false;
       updateRouteContext();
       announce(data.message);
@@ -922,7 +981,7 @@
 
   async function exportFormat(formatName) {
     if (!validateActiveRoute()) return;
-    const exportButton = $(`export-${formatName}`);
+    const exportButton = $("export-route");
     try {
       announce(`Préparation de l’export ${formatName.toUpperCase()}…`);
       const response = await fetch(`/api/routes/export/${formatName}`, {
@@ -956,9 +1015,14 @@
     }
   }
 
-  ["gpx", "csv", "json"].forEach(formatName => {
-    $(`export-${formatName}`).onclick = () => exportFormat(formatName);
-  });
+  // Même présentation que la Bibliothèque : un seul bouton, puis le choix du
+  // format dans la boîte de dialogue commune (export_dialog.js).
+  $("export-route").onclick = async () => {
+    if (!validateActiveRoute()) return;
+    const formatName = await chooseExportFormat($("export-route"));
+    if (!formatName) { announce("Export annulé."); return; }
+    await exportFormat(formatName);
+  };
 
   $("export-segments-csv").onclick = exportSegmentsCsv;
   $("visualize-route").onclick = openMapWindow;

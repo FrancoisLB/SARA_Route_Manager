@@ -11,8 +11,8 @@ Fonctions principales :
 - test_json_round_trip
 """
 
-__version__ = "0.7.2.0"
-__date__ = "2026-08-04"
+__version__ = "0.9.4"
+__date__ = "2026-11-19"
 
 from sara_route_manager.models import SaraRoute, Waypoint
 from sara_route_manager.route_formats import export_route, import_route
